@@ -1,0 +1,17 @@
+{% extends 'django_toolkit/base/layout.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center">
+    <div class="row">
+        <div class="col-12">
+            <form class="p-5 bg-white rounded shadow" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

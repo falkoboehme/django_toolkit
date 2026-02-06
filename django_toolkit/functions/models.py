@@ -1,0 +1,139 @@
+from django.apps import apps
+from .permissions import build_permission_for_model_operation
+
+
+def get_app_label(model):
+    """returns the app_label of a model"""
+    return model._meta.app_label
+
+
+def get_model_lower_name(model):
+    """returns the model_name of a model in small letters"""
+    return model._meta.model_name
+
+
+def get_model_class_name(model):
+    """returns the name of a model class as defined in the code"""
+    return model.__name__
+
+
+def get_model_url(model):
+    return f"{model._meta.model_name}s"
+
+
+def get_app_modelname_id(obj):
+    """returns the app_label, model_name and id of an object"""
+    if hasattr(obj._meta, "model"):
+        # Object
+        app_label = get_app_label(obj._meta.model)
+        model_name = get_model_lower_name(obj._meta.model)
+        object_id = obj.id
+    else:
+        # Model
+        app_label = get_app_label(obj)
+        model_name = get_model_lower_name(obj)
+        object_id = None
+    return (app_label, model_name, object_id)
+
+
+def get_app_model_url(model, slash_start=True, slash_end=True):
+    url = '/' if slash_start else ''
+    url += f"{model._meta.app_label}/{get_model_url(model)}"
+    url += '/' if slash_end else ''
+    return url
+
+
+def get_object_identifier(obj):
+    """returns the unique object_identifier for an object (for the GUI)"""
+    app_label, model_name, object_id = get_app_modelname_id(obj)
+    return f"{app_label}.{model_name}:{object_id}"
+
+
+def get_reverse(obj):
+    app_label, model_name, object_id = get_app_modelname_id(obj)
+    return f"{app_label}:{model_name}"
+
+
+def get_model_pk(model):
+    if model._meta.unique_together:
+        return model._meta.unique_together[0]
+    else:
+        for field in model._meta.get_fields():
+            if field.name != "id" and hasattr(field, "unique") and field.unique:
+                return field.name
+
+
+def get_obj_url(obj):
+    """return the URL ob an object using PK (get_absolute_url must be defined in the model)"""
+    model = obj._meta.model
+    return model.get_absolute_url(obj)
+
+
+def generate_link_to_obj(obj, user=None):
+    if user:
+        required_permission = build_permission_for_model_operation(obj._meta.model, "view")
+        if hasattr(obj._meta.model, "get_absolute_url") and user.has_perm(required_permission, obj):
+            return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
+        else:
+            return str(obj)
+    else:
+        if hasattr(obj._meta.model, "get_absolute_url"):
+            return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
+        else:
+            return str(obj)
+
+
+def get_user_defined_models():
+    """returns all models, which are created by user defines apps"""
+    return [model for model in apps.get_models() if model._meta.app_label not in ['admin', 'auth', 'contenttypes', 'sessions']]
+
+
+def get_user_defined_models_of_app(app_name):
+    """returns all models of a app, which are created by user defines apps"""
+    return [model for model in get_user_defined_models() if model._meta.app_label == app_name]
+
+
+def get_user_apps_with_models():
+    """returns all app_labels, which are created by user"""
+    user_apps_with_models = []
+    for model in get_user_defined_models():
+        app_label = model._meta.app_label
+        if app_label not in user_apps_with_models:
+            user_apps_with_models.append((app_label))
+    return user_apps_with_models
+
+
+def get_fields_of_model(model, selector='all'):
+    """returns all fields, which are defined in the cards attribute of the model Meta class. Can be filted using the selector"""
+    fields = []
+    if hasattr(model._meta, "cards"):
+        for card_col in model._meta.cards:
+            for card_dict in card_col:
+                if selector == 'all':
+                    fields.extend(card_dict['fields'])
+                elif selector == 'ro':
+                    if 'read_only' in card_dict and card_dict['read_only']:
+                        fields.extend(card_dict['fields'])
+                elif selector == 'rw':
+                    if not ('read_only' in card_dict and card_dict['read_only']):
+                        fields.extend(card_dict['fields'])
+                else:
+                    raise Exception(f"Selector '{selector}' unknown in get_fields_of_model")
+    return fields
+
+
+def get_foreignkey_fields_of_model(model):
+    """returns all foreign key relations of a model (depending from an other model)"""
+    related_fields = []
+    for field in model._meta.fields:
+        if hasattr(field, "resolve_related_fields"):
+            related_fields.append(field)
+    return related_fields
+
+
+def get_related_name_from_field(field):
+    if hasattr(field, "related_model"):
+        through_model = field.remote_field.through
+        for key, value in field.related_model._meta.fields_map.items():
+            if value.related_model == through_model:
+                return key

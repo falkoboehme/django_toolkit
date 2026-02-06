@@ -1,0 +1,27 @@
+{% if row.render_formular and not card.read_only %}
+    {# Create a form for changing/adding #}
+    <input type="text" name="{{ row.name }}" class="form-control" id="{{ row.id }}"
+        {% if row.value %}
+            value="{{ row.value }}"
+        {% endif %}
+        
+        {% if row.required %}
+            required
+        {% endif %}
+
+        {% if row.autocomplete %}
+            autocomplete="on"
+        {% else %}
+            autocomplete="off"
+        {% endif %}
+    >
+{% else %}
+    {# Just display the value #}
+    <output id="{{ row.id }}">
+        {% if row.value %}
+            {{ row.value }}
+        {% else %}
+            {{ global_none }}
+        {% endif %}
+    </output>
+{% endif %}

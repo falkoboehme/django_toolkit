@@ -1,0 +1,14 @@
+{% extends 'django_toolkit/base/40x.html' %}
+{% load i18n %}
+
+{% block page_title %}
+    {% trans "Permission denied" %}
+{% endblock %}
+
+{% block icon %}
+    <i class="mdi mdi-alert"></i>
+{% endblock %}
+
+{% block message %}
+    {{ message }}
+{% endblock %}

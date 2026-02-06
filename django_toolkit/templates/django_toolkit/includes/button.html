@@ -1,0 +1,9 @@
+{% if button.attr and button.icon %}
+    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}" {{ button.attr }}>{{ button.icon }} {{ button.name }}</a>
+{% elif button.attr and not button.icon %}
+    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}" {{ button.attr }}>{{ button.name }}</a>
+{% elif not button.attr and button.icon %}
+    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}">{{ button.icon }} {{ button.name }}</a>
+{% elif not button.attr and not button.icon %}
+    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}">{{ button.name }}</a>
+{% endif %}

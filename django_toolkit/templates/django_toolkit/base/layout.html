@@ -1,0 +1,63 @@
+{# Base template for (almost) all pages #}
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Select2 -->
+    <script src="{% static 'django_toolkit/js/jquery-3.6.0.min.js' %}"></script>
+    <script src="{% static 'django_toolkit/js/select2.min.js' %}"></script>
+    <link href="{% static 'django_toolkit/css/select2.min.css' %}" rel="stylesheet">
+    <link href="{% static 'django_toolkit/css/select2-bootstrap-5-theme.min.css' %}" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="{% static 'django_toolkit/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- MDI CSS -->
+    <link href="{% static 'django_toolkit/css/mdi.css' %}" rel="stylesheet">
+    <!-- Bootstrap Javascript -->
+    <script src="{% static 'django_toolkit/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- Iconify Javascript -->
+    <script src="{% static 'django_toolkit/js/iconify.min.js' %}"></script>
+    <!-- Django Toolkit CSS -->
+    <link href="{% static 'django_toolkit/css/django_toolkit.css' %}" rel="stylesheet">
+    <!-- Django Toolkit Javascript -->
+    <script src="{% static 'django_toolkit/js/django_toolkit.js' %}"></script>
+    {% if page_title %}
+      <title>{{ page_title }}</title>
+    {% endif %}
+  </head>
+  <body>
+      <div class="row">
+        <!-- Sidebar -->
+        <nav class="col sidenav">
+          {% include 'django_toolkit/base/sidebar.html' with user=user %}
+        </nav>
+        
+        <div class="col">
+          
+          <!-- Header -->
+          <div>
+            {% include 'django_toolkit/base/header.html' with user=user %}
+          </div>
+
+          <hr class="my-0">
+          
+          <!-- Page -->
+          <div>
+            {% block content-header %}{% endblock %}
+            {% block content %}{% endblock %}
+          </div>
+          
+          <!-- Footer -->
+          <div>
+            {% include 'django_toolkit/base/footer.html' with execution_time=execution_time %}
+          </div>
+
+        </div>
+    </div>
+  </body>
+</html>

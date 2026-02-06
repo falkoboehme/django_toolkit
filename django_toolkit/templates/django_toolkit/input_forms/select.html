@@ -1,0 +1,121 @@
+{% if row.render_formular and not card.read_only %}
+    {# Create a form for changing/adding #}
+    <select name="{{ row.name }}" id="{{ row.id }}" class="form-control"
+        {% if row.multiple %}
+            multiple="multiple"
+        {% endif %}
+        {% if row.size %}
+            size="{{ row.size }}"
+        {% endif %}
+    >
+
+    {% if not row.required %}
+        <option value="">{{ global_none }}</option>
+    {% endif %}
+
+    {% for value, display in row.select_data.items %}
+        {% if row.value == value %}
+            <option value="{{ value }}" selected>{{ display }}</option>
+        {% else %}
+            <option value="{{ value }}">{{ display }}</option>
+        {% endif %}
+    {% endfor %}
+    </select>
+
+
+{% comment %} <script>
+    // Funktion, um die Optionen im zweiten <select> zu aktualisieren
+    function updateSelectOptions(selected_value) {
+        const url = `/api/training/exercisetags/?sport_id=${selected_value}`;
+        const selected_values["{{ row.id }}"] = []
+        {% for key in row.select_data %}
+            selected_values["{{ row.id }}"].push({{ key }});
+        {% endfor %}
+        console.log(selected_values)
+        fetch(url)
+            .then(response => response.json ())// Antwort ist ein JSON-Array mit den neuen Optionen
+            .then(data => {
+                const selectElement = document.getElementById('id_tags');
+
+                 // Entferne alle bestehenden Optionen
+                selectElement.innerHTML ='';
+
+                // Neue Optionen hinzufügen
+                data.results.forEach(optionData => {
+                    const option = document.createElement('option');
+                    option.value = optionData.id;       // Setze den Wert der Option
+                    option.text = optionData.display;   // Setze den angezeigten Text der Option
+                    if (selected_values.includes(Number(option.value))) {
+                        option.selected = true;
+                    }
+                    selectElement.add(option);
+                });
+            })
+        .catch(error => console.error( 'Ein Fehler ist aufgetreten:', error));
+    }
+
+    // Event-Listener für das erste <select> hinzufügen
+    document.getElementById('id_sport').addEventListener('change', function() {
+        console.log()
+        const selected_value = this.value; // Der aktuell ausgewählte Wert
+        updateSelectOptions(selected_value); // Funktion aufrufen, um die Optionen zu aktualisieren
+    });
+
+    // Initialer Aufruf, um das zweite <select> zu füllen, falls eine Standardkategorie ausgewählt ist
+    // updateSelectOptions(document.getElementById('id_sport').value);
+</script> {% endcomment %}
+
+
+    {% comment %} <script>
+        // Funktion, um das <select>-Element zu aktualisieren
+        function updateSelectOptions(url) {
+            fetch(url)
+                .then(response => response.json ())// Antwort ist ein JSON-Array mit den neuen Optionen
+                .then(data => {
+                    const selectElement = document.getElementById('id_tags');
+
+                     // Entferne alle bestehenden Optionen
+                    selectElement.innerHTML ='';
+
+                    // Neue Optionen hinzufügen
+                    data.results.forEach(optionData => {
+                        const option = document.createElement('option');
+                        option.value = optionData.id;// Setze den Wert der Option
+                        option.text = optionData.display;  // Setze den angezeigten Text der Option
+                        selectElement.add(option);
+                    });
+                })
+            .catch(error => console.error( 'Ein Fehler ist aufgetreten:', error));
+        }
+        // Beispielaufruf der Funktion mit einer URL
+        updateSelectOptions('/api/training/exercisetags/?sport_id=1');
+    </script> {% endcomment %}
+
+
+    {% comment %} <script type="text/javascript">
+        $(document).ready(function () {
+            $('#id_sport').change(function () {
+                var countryId = $(this).val();
+                $.ajax({
+                    url:'/api/training/exercisetags/' , // Diese URL musst du selbst definieren
+                    data: {
+                        'sport_id' : 1
+                    },
+                    success:function(data) {
+                        $("#id_tags").html(data);
+                    }
+                });
+            });
+        });
+    </script> {% endcomment %}
+
+{% else %}
+    {# Just display the value #}
+    <output id="{{ row.id }}">
+        {% if row.value %}
+            {{ row.value }}
+        {% else %}
+            {{ global_none }}
+        {% endif %}
+    </output>
+{% endif %}

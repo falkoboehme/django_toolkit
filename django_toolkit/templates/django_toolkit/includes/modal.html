@@ -1,0 +1,20 @@
+<!-- Modal -->
+{% if modal.form_url %}
+  <form action="{{ modal.form_url }}" method="post">
+  {% csrf_token %}
+{% endif %}
+<div class="modal fade" id="deleteAskModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog {{ modal.dialog_class }}">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">{{ modal.title }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="modal-body">{{ modal.body }}</div>
+      <div class="modal-footer">{{ modal.footer }}</div>
+    </div>
+  </div>
+</div>
+{% if modal.form_url %}
+  </form>
+{% endif %}

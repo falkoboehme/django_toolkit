@@ -20,24 +20,26 @@
 
     {# render the formular (AddView or UpdateView) #}
         <div class="col">
-            {% if row.form == 'input_text' %}
-                {% include 'fast_dev/input_forms/input_text.html' %}
+            {% if row.form == 'display' %}
+                {% include 'django_toolkit/input_forms/display.html' %}
+            {% elif row.form == 'input_text' %}
+                {% include 'django_toolkit/input_forms/input_text.html' %}
             {% elif row.form == 'input_number' %}
-                {% include 'fast_dev/input_forms/input_number.html' %}
+                {% include 'django_toolkit/input_forms/input_number.html' %}
             {% elif row.form == 'input_checkbox' %}
-                {% include 'fast_dev/input_forms/input_checkbox.html' %}
+                {% include 'django_toolkit/input_forms/input_checkbox.html' %}
             {% elif row.form == 'input_datetime' %}
-                {% include 'fast_dev/input_forms/input_datetime.html' %}
+                {% include 'django_toolkit/input_forms/input_datetime.html' %}
             {% elif row.form == 'input_date' %}
-                {% include 'fast_dev/input_forms/input_date.html' %}
+                {% include 'django_toolkit/input_forms/input_date.html' %}
             {% elif row.form == 'textarea' %}
-                {% include 'fast_dev/input_forms/textarea.html' %}
+                {% include 'django_toolkit/input_forms/textarea.html' %}
             {% elif row.form == 'select' %}
-                {% include 'fast_dev/input_forms/select.html' %}
+                {% include 'django_toolkit/input_forms/select.html' %}
             {% elif row.form == 'select_search' %}
-                {% include 'fast_dev/input_forms/select_search.html' %}
+                {% include 'django_toolkit/input_forms/select_search.html' %}
             {% elif row.form == 'colorfield' %}
-                {% include 'fast_dev/input_forms/colorfield.html' %}
+                {% include 'django_toolkit/input_forms/colorfield.html' %}
             {% else %}
                 Eingabefeld '{{ row.form }}'
             {% endif %}

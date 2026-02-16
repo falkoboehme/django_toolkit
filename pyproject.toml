@@ -28,6 +28,7 @@ classifiers = [
 ]
 dependencies = [
     "Django>=4.0",
+    "django-tables2",
 ]
 
 [project.urls]
@@ -37,3 +38,7 @@ Repository = "https://github.com/yourusername/django-toolkit"
 [tool.setuptools.packages.find]
 include = ["django_toolkit*"]
 exclude = ["tests*", "docs*"]
+
+
+[tool.black]
+line-length = 140

@@ -1,5 +1,5 @@
 from django.apps import apps
-from .permissions import build_permission_for_model_operation
+from .permissions import ALL_OPERATIONS
 
 
 def get_app_label(model):
@@ -37,9 +37,9 @@ def get_app_modelname_id(obj):
 
 
 def get_app_model_url(model, slash_start=True, slash_end=True):
-    url = '/' if slash_start else ''
+    url = "/" if slash_start else ""
     url += f"{model._meta.app_label}/{get_model_url(model)}"
-    url += '/' if slash_end else ''
+    url += "/" if slash_end else ""
     return url
 
 
@@ -69,28 +69,36 @@ def get_obj_url(obj):
     return model.get_absolute_url(obj)
 
 
-def generate_link_to_obj(obj, user=None):
-    if user:
-        required_permission = build_permission_for_model_operation(obj._meta.model, "view")
-        if hasattr(obj._meta.model, "get_absolute_url") and user.has_perm(required_permission, obj):
-            return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
-        else:
-            return str(obj)
-    else:
-        if hasattr(obj._meta.model, "get_absolute_url"):
-            return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
-        else:
-            return str(obj)
+# def generate_link_to_obj(obj, user=None):
+#     if user:
+#         required_permission = build_permission_for_model_operation(obj._meta.model, "view")
+#         if hasattr(obj._meta.model, "get_absolute_url") and user.has_perm(required_permission, obj):
+#             return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
+#         else:
+#             return str(obj)
+#     else:
+#         if hasattr(obj._meta.model, "get_absolute_url"):
+#             return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
+#         else:
+#             return str(obj)
 
 
 def get_user_defined_models():
     """returns all models, which are created by user defines apps"""
-    return [model for model in apps.get_models() if model._meta.app_label not in ['admin', 'auth', 'contenttypes', 'sessions']]
+    return [
+        model
+        for model in apps.get_models()
+        if model._meta.app_label not in ["admin", "auth", "contenttypes", "sessions"]
+    ]
 
 
 def get_user_defined_models_of_app(app_name):
     """returns all models of a app, which are created by user defines apps"""
-    return [model for model in get_user_defined_models() if model._meta.app_label == app_name]
+    return [
+        model
+        for model in get_user_defined_models()
+        if model._meta.app_label == app_name
+    ]
 
 
 def get_user_apps_with_models():
@@ -103,22 +111,24 @@ def get_user_apps_with_models():
     return user_apps_with_models
 
 
-def get_fields_of_model(model, selector='all'):
+def get_fields_of_model(model, selector="all"):
     """returns all fields, which are defined in the cards attribute of the model Meta class. Can be filted using the selector"""
     fields = []
     if hasattr(model._meta, "cards"):
         for card_col in model._meta.cards:
-            for card_dict in card_col:
-                if selector == 'all':
-                    fields.extend(card_dict['fields'])
-                elif selector == 'ro':
-                    if 'read_only' in card_dict and card_dict['read_only']:
-                        fields.extend(card_dict['fields'])
-                elif selector == 'rw':
-                    if not ('read_only' in card_dict and card_dict['read_only']):
-                        fields.extend(card_dict['fields'])
+            for card in card_col:
+                if selector == "all":
+                    fields.extend(card.fields)
+                elif selector == "ro":
+                    fields.extend(card.read_only)
+                elif selector == "rw":
+                    for field in card.fields:
+                        if field not in card.read_only:
+                            fields.append(field)
                 else:
-                    raise Exception(f"Selector '{selector}' unknown in get_fields_of_model")
+                    raise Exception(
+                        f"Selector '{selector}' unknown in get_fields_of_model"
+                    )
     return fields
 
 
@@ -137,3 +147,19 @@ def get_related_name_from_field(field):
         for key, value in field.related_model._meta.fields_map.items():
             if value.related_model == through_model:
                 return key
+
+
+def get_model_operation_alias_name(model_name: str, operation: str) -> str:
+    """Create a URL name based on model name and operation"""
+    assert (
+        operation in ALL_OPERATIONS
+    ), f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
+    return f"{model_name.lower()}.{operation}"
+
+
+def get_model_operation_url(model, operation: str) -> str:
+    """Create a URL based on model name and operation"""
+    assert (
+        operation in ALL_OPERATIONS
+    ), f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
+    return f"/{model._meta.app_label}/{get_model_url(model)}/{operation}/"

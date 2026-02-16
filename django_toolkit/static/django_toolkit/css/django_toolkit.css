@@ -1,0 +1,187 @@
+/* overwrite .row from bootstrap to have no negative margin -> fit to 100% width*/
+.row {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+.col {
+    padding-right: 0px;
+    padding-left: 0px;
+}
+
+.main-bg {
+    background-color: #ffffff;
+}
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #ffffff;
+    background-clip: border-box;
+    border: 1px solid rgba(0, 0, 0, .2);
+    border-radius: 0.5rem;
+    margin: 0.75rem;
+
+    box-shadow: 0.2rem 0.2rem 0.75rem rgba(0, 0, 0, 0.35);
+}
+
+.table-light {
+    border-color: black;
+}
+
+.table>:not(caption)>*>* {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+table.thead {
+    font-size: 1rem;
+}
+
+table.tbody {
+    font-size: 0.7rem;
+}
+
+.no-collapse {
+    border-collapse: separate;
+}
+
+a {
+    text-decoration: none;
+}
+
+label.required {
+    font-weight: bold;
+}
+
+table th a,table th a:hover {
+    color: #212529;
+    text-decoration: none;
+}
+
+table.table thead th.asc.orderable a:after {
+    content: url('/static/icons/chevron-down.svg');
+    display: table-cell;
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+table.table thead th.desc.orderable a:after {
+    content: url('/static/icons/chevron-up.svg');
+    display: table-cell;
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+table th {
+    font-size: .8rem;
+    line-height: 1.25;
+    vertical-align: middle;
+}
+
+table td {
+    font-size: 0.9rem;
+    line-height: 1.25;
+    vertical-align: middle;
+}
+
+div.table-container {
+    /* Add padding to the top, otherwise the top corners do not have a border radius*/
+    padding-top: 5px;
+}
+
+.object-subtitle {
+    display: block;
+    font-size: .875rem;
+    color: #6c757d;
+}
+
+.modal-dialog-center {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    top: 25%;
+    /* margin-top: 50%; */
+}
+
+.modal-dialog-top-right {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    top: 5%;
+    left: 35%;
+}
+
+div.form-switch {
+    height: 38px;
+    padding-top: 6px;
+}
+
+
+nav.sidenav {
+    max-width: 12rem;
+    background-color: #dbdbdb;
+}
+
+.nav {
+    list-style: none;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0rem 0.5rem 0rem 0rem;
+}
+
+.nav-group-label {
+    display: block;
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 1rem .25rem .25rem 1rem;
+}
+
+.nav-link {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: .25rem .25rem .25rem 1rem;
+    margin-top: 0;
+    margin-bottom: 0;
+    border-top-right-radius: .375rem;
+    border-bottom-right-radius: .375rem;
+}
+
+.select2-results__options .select2-results__option {
+    line-height: 1em !important;
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #337ab7;
+    color: white;
+}
+
+span.color-label {
+    display: block;
+    width: 4rem;
+    height: 1rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #303030;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem #00000013;
+}
+
+tr.draggable {
+    cursor: move;
+}

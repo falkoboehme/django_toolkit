@@ -1,0 +1,13 @@
+.mdi:before, .mdi-set {
+    display: inline-block;
+    font: normal normal normal 24px / 1 "Material Design Icons";
+    font-size: inherit;
+    text-rendering: auto;
+    line-height: inherit;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.mdi-plus-thick:before {
+    content: url('/static/icons/plus-thick.svg');
+}

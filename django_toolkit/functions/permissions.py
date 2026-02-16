@@ -5,23 +5,60 @@ from django.contrib.auth.models import Permission
 
 
 import logging
+
 log = logging.getLogger("dt.permissions")
+
+
+READ_ONLY_OPERATIONS = ["detail", "list"]
+READ_WRITE_OPERATIONS = ["create", "update", "delete"]
+ALL_OPERATIONS = READ_ONLY_OPERATIONS + READ_WRITE_OPERATIONS
+
+PERMISSIION_ACTION = ["view", "add", "change", "delete"]
+OPERATION_PERMISSIION_ACTION_MAPPING = {
+    "detail": "view",
+    "list": "view",
+    "create": "add",
+    "update": "change",
+    "delete": "delete",
+}
+
+
+def get_perm_action_from_operation(operation):
+    if operation in OPERATION_PERMISSIION_ACTION_MAPPING:
+        return OPERATION_PERMISSIION_ACTION_MAPPING[operation]
+    else:
+        raise ImproperlyConfigured(
+            f"Operation '{operation}' is not supported. Supported operations are: {ALL_OPERATIONS}"
+        )
+
+
+def get_operations_from_perm_action(perm_action):
+    if perm_action in OPERATION_PERMISSIION_ACTION_MAPPING.values():
+        return [
+            operation
+            for operation, pa in OPERATION_PERMISSIION_ACTION_MAPPING.items()
+            if pa == perm_action
+        ]
+    else:
+        raise ImproperlyConfigured(
+            f"Permission action '{perm_action}' is not supported. Supported permission actions are: {PERMISSIION_ACTION}"
+        )
 
 
 def permissions_by_model(permission_list):
     codename_mapping = {
-        'add': 'a',
-        'change': 'c',
-        'delete': 'd',
-        'view': 'v',
+        "add": "a",
+        "change": "c",
+        "delete": "d",
+        "view": "v",
     }
-    
+
     display_dict = {}
     for permission in permission_list:
         permission_model = permission.content_type.model_class()
         if not permission_model in display_dict:
             display_dict[permission_model] = []
-        permission_opereration = (permission.codename).split('_')[0]
+        permission_opereration = (permission.codename).split("_")[0]
         short_op = codename_mapping[permission_opereration]
         display_dict[permission_model].append(short_op)
     return display_dict
@@ -42,10 +79,6 @@ def string_to_permission(permission_str):
     return Permission.objects.get(content_type__app_label=app_label, codename=codename)
 
 
-def build_permission_for_model_operation(model, operation):
-    return f"{model._meta.app_label}.{operation}_{model._meta.model_name}"
-
-
 def get_permission_for_model(model, action):
     """
     Resolve the named permission for a given model (or instance) and action (e.g. view or add).
@@ -56,7 +89,7 @@ def get_permission_for_model(model, action):
     # Resolve to the "concrete" model (for proxy models)
     model = model._meta.concrete_model
 
-    return f'{model._meta.app_label}.{action}_{model._meta.model_name}'
+    return f"{model._meta.app_label}.{action}_{model._meta.model_name}"
 
 
 # A few helper functions for common logic between User and AnonymousUser.
@@ -105,7 +138,7 @@ def is_owner(user, obj):
     Is the given user owner of the object (created_user)
     """
 
-    if hasattr(obj, 'created_user'):
+    if hasattr(obj, "created_user"):
         username_field = getattr(user, settings.USERNAME_FIELD)
         if obj.created_user == username_field:
             return True
@@ -119,11 +152,13 @@ def user_has_object_perms(user, obj, operation=None):
     For add, obj must be the model.
     """
     # TODO
-    all_operations = ['view', 'add', 'change', 'delete']
+    all_operations = ["view", "add", "change", "delete"]
     if operation not in all_operations:
-        raise ImproperlyConfigured(f"operation must be in {all_operations}. Not {operation}")
+        raise ImproperlyConfigured(
+            f"operation must be in {all_operations}. Not {operation}"
+        )
     all_user_permissions = user.get_all_permissions()
-    
+
     # for add we do not have an object, so model permissions to add are sufficiant
     if operation == "add":
         req_perm = get_permission_for_model(model=obj, action=operation)
@@ -138,16 +173,15 @@ def user_has_object_perms(user, obj, operation=None):
             pass
     return False
 
-    
 
 def raise_permission_denied(user, model_obj, action):
-    if action == 'add':
-        log.error(f"User '{user}' does not have the permission to {action} objects to model '{model_obj}'")
+    if action == "add":
+        log.error(
+            f"User '{user}' does not have the permission to {action} objects to model '{model_obj}'"
+        )
         raise PermissionDenied(f"You do not have permission to {action} data.")
     else:
-        log.error(f"User '{user}' does not have the permission to {action} object '{model_obj}'")
+        log.error(
+            f"User '{user}' does not have the permission to {action} object '{model_obj}'"
+        )
         raise PermissionDenied(f"You do not have permission to {action} this data.")
-
-
-
-

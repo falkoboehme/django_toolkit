@@ -5,6 +5,7 @@ from django.contrib.auth.models import Permission
 from django.urls import reverse
 from .base_models import DTHistoryChangeLoggingModel
 from .group import DTGroup
+from ..template_context.card import Card
 
 
 class DTUserManager(BaseUserManager):
@@ -96,26 +97,26 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
         verbose_name_plural = _('Users')
         base_url = 'users'
         cards = [
-            [
-                {
-                    'header': _('User'),
-                    'fields': ['email', 'groups', ]
-                },
-                {
-                    'header': _('Special Rights'),
-                    'fields': ['is_active', 'is_staff', 'user_permissions']
-                },
+            [  # Column 0
+                Card(
+                    header=_('User'),
+                    fields=['email', 'groups']
+                ),
+                Card(
+                    header=_('Special Rights'),
+                    fields=['is_active', 'is_staff', 'user_permissions']
+                ),
             ],
-            [
-                {
-                    'header': _('Comments'),
-                    'fields': ['comment']
-                },
-                {
-                    'header': _('Internal'),
-                    'fields': ['created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser'],
-                    'read_only': True,
-                },
+            [  # Column 1
+                Card(
+                    header=_('Comments'),
+                    fields=['comment']
+                ),
+                Card(
+                    header=_('Internal'),
+                    fields=['created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser'],
+                    read_only=['created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser']
+                ),
             ]
         ]
 

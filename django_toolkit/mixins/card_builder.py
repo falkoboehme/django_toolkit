@@ -1,160 +1,118 @@
 """
-Card Builder Mixin for Django Models
+Card Builder Mixin for automatic card generation from Django models
 """
 from django.db import models
-from typing import List, Optional
-from ..html_components import Card, CardColumn, CardRow, Field
+from django.forms import ModelForm
+from ..template_context.card_template import CardTemplate, CardColumnTemplate
+from ..template_context.card import Card as CardConfig
 
 
 class CardBuilderMixin:
     """
-    Mixin to add card building capabilities to Django models
+    Mixin to automatically build cards from Django models Meta information.
+    Can be used in DetailView, CreateView, UpdateView.
     """
     
-    @classmethod
-    def field(cls, field_name: str, **kwargs) -> Field:
-        """
-        Create a Field component from a model field name.
-        Automatically extracts verbose_name, form type, required, help_text from model field.
-        
-        Args:
-            field_name: Name of the model field
-            **kwargs: Override any auto-detected values (display, form, required, help_text, etc.)
-        
-        Example:
-            cls.field('email')  # Uses all defaults from model field
-            cls.field('email', form='input_text')  # Override form type
-        """
-        try:
-            model_field = cls._meta.get_field(field_name)   # type: ignore
-            return cls._create_field_from_model_field(field_name, model_field, **kwargs)
-        except:
-            # Fallback for properties or custom fields
-            return Field(
-                field_id=field_name,
-                display=kwargs.get('display', field_name),
-                form=kwargs.get('form', 'input_text'),
-                **{k: v for k, v in kwargs.items() if k not in ['display', 'form']}
-            )
+    # Define card layout in your view class
+    card_layout: list[list[CardConfig | dict[str, any]]] | None = None
     
-    @classmethod
-    def fields(cls, *field_names, **kwargs) -> List[Field]:
+    def get_card_layout(self) -> list[list[CardConfig | dict[str, any]]]:
         """
-        Create multiple Field components from model field names.
+        Get card layout configuration as nested list (columns with cards).
         
-        Args:
-            *field_names: Names of the model fields
-            **kwargs: Common overrides for all fields
+        Priority:
+        1. View's card_layout attribute
+        2. Model's Meta.cards attribute
+        3. View's fields attribute (single column, single card)
+        4. All editable model fields (single column, single card)
         
-        Example:
-            cls.fields('email', 'name', 'phone')
-        """
-        return [cls.field(name, **kwargs) for name in field_names]
-    
-    @classmethod
-    def get_card_layout(cls) -> Optional[CardRow]:
-        """
-        Override this method to define card layout for the model.
-        Uses cls.field() or cls.fields() to automatically create fields from model definition.
-        
-        Example:
-            @classmethod
-            def get_card_layout(cls):
-                return CardRow([
-                    CardColumn([
-                        Card('User Data', [
-                            cls.field('email'),  # Auto: verbose_name, form type, required
-                            cls.field('name')
-                        ])
-                    ])
-                ])
+        Returns:
+            Nested list: list of columns, each containing list of cards
             
-            # Or with multiple fields:
-            @classmethod
-            def get_card_layout(cls):
-                return CardRow([
-                    CardColumn([
-                        Card('User Data', cls.fields('email', 'name', 'phone'))
-                    ])
-                ])
+        Example:
+            class MyModel(models.Model):
+                ...
+                class Meta:
+                    cards = [
+                        [  # Column 0
+                            Card(header='Basic', fields=['name', 'email']),
+                            Card(header='Address', fields=['street', 'city']),
+                        ],
+                        [  # Column 1
+                            Card(header='Other', fields=['comment']),
+                        ],
+                    ]
         """
-        # Try to build from Meta.cards if available
-        if hasattr(cls._meta, 'cards') and cls._meta.cards: # type: ignore
-            return cls._build_cards_from_meta()
-        return None
-    
-    @classmethod
-    def _build_cards_from_meta(cls) -> CardRow:
-        """
-        Build CardRow from Meta.cards definition
-        """
-        columns = []
+        # 1. Check view's card_layout attribute
+        if self.card_layout:
+            return self.card_layout
         
-        for card_col in cls._meta.cards:    # type: ignore
-            cards = []
-            for card_def in card_col:
-                fields = []
-                for field_name in card_def.get('fields', []):
-                    # Get field from model
-                    try:
-                        model_field = cls._meta.get_field(field_name)   # type: ignore
-                        field = cls._create_field_from_model_field(field_name, model_field)
-                        fields.append(field)
-                    except:
-                        # Field might be a property or custom field
-                        pass
+        # 2. Check model's Meta.cards
+        if hasattr(self.model._meta, 'cards'):
+            return self.model._meta.cards
+        
+        # 3. Use view's fields attribute (single column, single card)
+        if hasattr(self, 'fields') and self.fields:
+            return [[CardConfig(header=self.model._meta.verbose_name, fields=list(self.fields))]]
+        
+        # 4. Fallback: all editable model fields (single column, single card)
+        fields = [f.name for f in self.model._meta.fields if f.editable]
+        return [[CardConfig(header=self.model._meta.verbose_name, fields=fields)]]
+    
+    def build_cards(
+        self,
+        instance: models.Model | None = None,
+        form: ModelForm | None = None
+    ) -> CardColumnTemplate:
+        """
+        Build card structure from nested layout configuration.
+        
+        Args:
+            instance: Model instance for DetailView (read-only)
+            form: Form instance for CreateView/UpdateView (editable)
+            
+        Returns:
+            CardColumnTemplate ready for rendering
+        """
+        card_columns = CardColumnTemplate()
+        card_layout = self.get_card_layout()
+        
+        # Process nested format: each element is a column containing cards
+        for column_index, column_cards in enumerate(card_layout):
+            for card_config in column_cards:
+                # Support both Card objects and dicts
+                if isinstance(card_config, CardConfig):
+                    header = card_config.header
+                    fields = card_config.fields
+                    read_only = card_config.read_only or []
+                else:
+                    # Dict format (backwards compatible)
+                    header = card_config.get('header', '')
+                    fields = card_config.get('fields', [])
+                    read_only = card_config.get('read_only', [])
                 
-                card = Card(
-                    header=card_def.get('header', ''),
-                    rows=fields,
-                    td_display_class=card_def.get('td_display_class', ''),
-                    td_value_class=card_def.get('td_value_class', ''),
+                card = CardTemplate(
+                    header=header,
+                    form=form,
+                    instance=instance,
+                    fields=fields,
+                    read_only=read_only
                 )
-                cards.append(card)
-            
-            columns.append(CardColumn(cards))
+                card_columns.add_card_to_column(card, column_index)
         
-        return CardRow(columns)
+        return card_columns
     
-    @classmethod
-    def _create_field_from_model_field(cls, field_name: str, model_field, **kwargs) -> Field:
-        """
-        Create a Field component from a Django model field
+    def get_context_data(self, **kwargs):
+        """Add cards to context"""
+        context = super().get_context_data(**kwargs)
         
-        Args:
-            field_name: Name of the field
-            model_field: Django model field instance
-            **kwargs: Override any auto-detected values
-        """
+        # Determine if we have form or instance
+        form = context.get('form')
+        instance = getattr(self, 'object', None)
         
-        # Determine form type based on field type
-        form_type = 'input_text'  # default
+        # Build and add cards
+        cards = self.build_cards(instance=instance, form=form)
+        context['cards'] = cards.cards
+        context['card_column_count'] = cards.card_column_count
         
-        if isinstance(model_field, models.BooleanField):
-            form_type = 'input_checkbox'
-        elif isinstance(model_field, models.TextField):
-            form_type = 'textarea'
-        elif isinstance(model_field, models.IntegerField):
-            form_type = 'input_number'
-        elif isinstance(model_field, models.DateTimeField):
-            form_type = 'input_datetime'
-        elif isinstance(model_field, models.DateField):
-            form_type = 'input_date'
-        elif isinstance(model_field, (models.ForeignKey, models.ManyToManyField)):
-            form_type = 'select'
-        
-        # Build field with auto-detected values, allow kwargs to override
-        return Field(
-            field_id=kwargs.get('field_id', field_name),
-            display=kwargs.get('display', model_field.verbose_name or field_name),
-            form=kwargs.get('form', form_type),
-            required=kwargs.get('required', not model_field.blank and not model_field.null),
-            help_text=kwargs.get('help_text', model_field.help_text or ''),
-            **{k: v for k, v in kwargs.items() if k not in ['field_id', 'display', 'form', 'required', 'help_text']}
-        )
-    
-    def get_instance_card_layout(self) -> Optional[CardRow]:
-        """
-        Get card layout for this specific instance (can access instance data)
-        """
-        return self.__class__.get_card_layout()
+        return context

@@ -3,6 +3,7 @@ from django.contrib.auth.models import  Permission, GroupManager
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from .base_models import DTHistoryChangeLoggingModel
+from ..template_context.card import Card
 
 
 class DTGroup(DTHistoryChangeLoggingModel):
@@ -36,21 +37,21 @@ class DTGroup(DTHistoryChangeLoggingModel):
         base_url = 'groups'
         cards = [
             [
-                {
-                    'header': _('Group'),
-                    'fields': ['name', 'permissions']
-                },
+                Card(
+                    header=_('Group'),
+                    fields=['name', 'permissions']
+                ),
             ],
             [
-                {
-                    'header': _('Comments'),
-                    'fields': ['comment']
-                },
-                {
-                    'header': _('Internal'),
-                    'fields': ['created', 'created_user', 'last_updated', 'last_updated_user'],
-                    'read_only': True,
-                },
+                Card(
+                    header=_('Comments'),
+                    fields=['comment']
+                ),
+                Card(
+                    header=_('Internal'),
+                    fields=['created', 'created_user', 'last_updated', 'last_updated_user'],
+                    read_only=['created', 'created_user', 'last_updated', 'last_updated_user'],
+                ),
             ]
         ]
 

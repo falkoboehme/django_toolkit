@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from ..template_context.menu_entry import MenuEntry
-# from .icon import icon_rest_api, icon_swagger_v2, icon_swagger_v3
+from ..template_context.icon import icon_rest_api, icon_swagger_v2, icon_swagger_v3
 # from ..templatetags.calc import *
 
 import logging
@@ -31,7 +31,7 @@ class DTContextMixin:
         self._add_context(self.global_context, request, instance)
         # self._add_context(self.default_context, request, instance)
         self._add_context(self.menu_context, request, instance)
-        # self._add_context(self.footer_context, request, instance)
+        #self._add_context(self.footer_context, request, instance)
         return self._context
     
 
@@ -68,15 +68,15 @@ class DTContextMixin:
         return context
     
 
-    # def footer_context(self, request, instance=None):
-    #     footer_context = {}
-    #     if settings.DJANGO_FAST_DEV_AUTO_CREATE_API:
-    #         footer_context.update({
-    #             'footer_api': icon_rest_api(),
-    #             'footer_swagger_v2': icon_swagger_v2(),
-    #             'footer_swagger_v3': icon_swagger_v3(),
-    #         })
-    #     return footer_context
+    def footer_context(self, request, instance=None):
+        footer_context = {}
+        if settings.DT_AUTO_CREATE_API:
+            footer_context.update({
+                'footer_api': icon_rest_api(),
+                'footer_swagger_v2': icon_swagger_v2(),
+                'footer_swagger_v3': icon_swagger_v3(),
+            })
+        return footer_context
     
 
     def _add_context(self, func, request, instance=None):

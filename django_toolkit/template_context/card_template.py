@@ -6,6 +6,9 @@ from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.forms import BoundField
 from django.db import models
+from django.conf import settings
+from datetime import datetime, date, time
+from ..functions.format import django_format_to_python
 
 
 class CardRow:
@@ -60,13 +63,31 @@ class CardRow:
     @property
     def value(self) -> any:
         """Field value"""
+        raw_value = None
+        
         if self._value is not None:
-            return self._value
-        if self.bound_field:
-            return self.bound_field.value()
-        if self.model_instance and self.field_name:
-            return getattr(self.model_instance, self.field_name)
-        return None
+            raw_value = self._value
+        elif self.bound_field:
+            raw_value = self.bound_field.value()
+        elif self.model_instance and self.field_name:
+            raw_value = getattr(self.model_instance, self.field_name)
+        
+        # Format DateTime/Date/Time fields using settings
+        if raw_value is not None:
+            if isinstance(raw_value, datetime):
+                django_datetime_format = getattr(settings, 'DATETIME_FORMAT', 'Y-m-d H:i:s')
+                python_format = django_format_to_python(django_datetime_format)
+                return raw_value.strftime(python_format)
+            elif isinstance(raw_value, date):
+                django_date_format = getattr(settings, 'DATE_FORMAT', 'Y-m-d')
+                python_format = django_format_to_python(django_date_format)
+                return raw_value.strftime(python_format)
+            elif isinstance(raw_value, time):
+                django_time_format = getattr(settings, 'TIME_FORMAT', 'H:i:s')
+                python_format = django_format_to_python(django_time_format)
+                return raw_value.strftime(python_format)
+        
+        return raw_value
     
     @property
     def required(self) -> bool:

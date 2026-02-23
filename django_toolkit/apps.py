@@ -2,6 +2,7 @@
 Django Toolkit App Configuration
 """
 from django.apps import AppConfig
+from django.conf import settings
 import os
 
 class DjangoToolkitConfig(AppConfig):
@@ -29,9 +30,9 @@ class DjangoToolkitConfig(AppConfig):
         apps.get_models()
         
         print("🔍 django_toolkit: Auto-syncing URLs for registered models...")
-        print(f"   Registered apps: {list(ModelAutoCreator._registry.keys())}")
-        for app_label, models in ModelAutoCreator._registry.items():
-            print(f"   {app_label}: {list(models.keys())}")
+        # print(f"   Registered apps: {list(ModelAutoCreator._registry.keys())}")
+        # for app_label, models in ModelAutoCreator._registry.items():
+        #     print(f"   {app_label}: {list(models.keys())}")
         try:
             # Auto-sync URLs
             modified_files = ModelAutoCreator().auto_sync()

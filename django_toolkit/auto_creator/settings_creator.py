@@ -13,9 +13,16 @@ class SettingsCreatorMixin:
     ]
     dt_settings_lines = [
         "DEBUG = config('DT_DEBUG', default=False, cast=bool)",
+        "DATETIME_FORMAT = config('DT_DATETIME_FORMAT', default='Y-m-d H:i:s', cast=str)",
+        "DATE_FORMAT = config('DT_DATE_FORMAT', default='Y-m-d', cast=str)",
+        "TIME_FORMAT = config('DT_TIME_FORMAT', default='H:i:s', cast=str)",
         "DT_TOOLKIT_DEVELOPMENT_MODE = config('DT_TOOLKIT_DEVELOPMENT_MODE', default=False, cast=bool)",
         "DT_PROJECT_NAME = config('DT_PROJECT_NAME', default='My Project', cast=str)",
         "DT_PROJECT_VERSION = config('DT_PROJECT_VERSION', default='0.1', cast=str)",
+        "DT_AUTO_CREATE_API = config('DT_AUTO_CREATE_API', default=False, cast=bool)",
+        "DT_AUTO_CREATE_VIEWS = config('DT_AUTO_CREATE_VIEWS', default=False, cast=bool)",
+        "DT_AUTO_CREATE_MENU = config('DT_AUTO_CREATE_MENU', default=False, cast=bool)",
+        "DT_AUTO_CREATE_ADMIN_AREA = config('DT_AUTO_CREATE_ADMIN_AREA', default=False, cast=bool)",
         "DT_DISPLAY_NONE = config('DT_DISPLAY_NONE', default='—', cast=str)",
         "DT_ITEMS_PER_PAGE_MAX = config('DT_ITEMS_PER_PAGE_MAX', default=100, cast=int)",
         "DT_ITEMS_PER_PAGE_DEFAULT = config('DT_ITEMS_PER_PAGE_DEFAULT', default=25, cast=int)",

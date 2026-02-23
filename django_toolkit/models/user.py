@@ -114,8 +114,8 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
                 ),
                 Card(
                     header=_('Internal'),
-                    fields=['created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser'],
-                    read_only=['created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser']
+                    fields=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser'],
+                    read_only=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser']
                 ),
             ]
         ]

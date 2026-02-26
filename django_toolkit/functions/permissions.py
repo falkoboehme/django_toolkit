@@ -6,7 +6,7 @@ from django.contrib.auth.models import Permission
 
 import logging
 
-log = logging.getLogger("dt.permissions")
+log = logging.getLogger("toolkit")
 
 
 READ_ONLY_OPERATIONS = ["detail", "list"]
@@ -45,38 +45,46 @@ def get_operations_from_perm_action(perm_action):
         )
 
 
-def permissions_by_model(permission_list):
-    codename_mapping = {
-        "add": "a",
-        "change": "c",
-        "delete": "d",
-        "view": "v",
-    }
-
-    display_dict = {}
-    for permission in permission_list:
-        permission_model = permission.content_type.model_class()
-        if not permission_model in display_dict:
-            display_dict[permission_model] = []
-        permission_opereration = (permission.codename).split("_")[0]
-        short_op = codename_mapping[permission_opereration]
-        display_dict[permission_model].append(short_op)
-    return display_dict
+def get_perm_action_from_permission(permission):
+    return permission.codename.split("_")[0]
 
 
-def permission_to_string(permisson):
-    """
-    Returns the text of the permission (<Permission: Inventory | Cloudarea | Can add Cloudarea> -> inventory.add_cloudarea)
-    """
-    return f"{permisson.content_type.app_label}.{permisson.codename}"
+# def get_perm_model_from_permission(permission):
+#     return permission.content_type.model
 
 
-def string_to_permission(permission_str):
-    """
-    Returns the permission object from the permission_str (e.g. auth.view_group)
-    """
-    app_label, codename = permission_str.split(".", 1)
-    return Permission.objects.get(content_type__app_label=app_label, codename=codename)
+# def permissions_by_model(permission_list):
+#     codename_mapping = {
+#         "add": "a",
+#         "change": "c",
+#         "delete": "d",
+#         "view": "v",
+#     }
+
+#     display_dict = {}
+#     for permission in permission_list:
+#         permission_model = permission.content_type.model_class()
+#         if not permission_model in display_dict:
+#             display_dict[permission_model] = []
+#         permission_opereration = (permission.codename).split("_")[0]
+#         short_op = codename_mapping[permission_opereration]
+#         display_dict[permission_model].append(short_op)
+#     return display_dict
+
+
+# def permission_to_string(permisson):
+#     """
+#     Returns the text of the permission (<Permission: Inventory | Cloudarea | Can add Cloudarea> -> inventory.add_cloudarea)
+#     """
+#     return f"{permisson.content_type.app_label}.{permisson.codename}"
+
+
+# def string_to_permission(permission_str):
+#     """
+#     Returns the permission object from the permission_str (e.g. auth.view_group)
+#     """
+#     app_label, codename = permission_str.split(".", 1)
+#     return Permission.objects.get(content_type__app_label=app_label, codename=codename)
 
 
 def get_permission_for_model(model, action):

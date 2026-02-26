@@ -4,11 +4,9 @@ View Creator Mixin for ModelAutoCreator
 
 from typing import Dict
 from pathlib import Path
-from django_toolkit.functions.files import insert_lines_in_file, create_file
+from django_toolkit.functions.files import insert_line_in_file, create_file
 from django_toolkit.functions.permissions import READ_ONLY_OPERATIONS, ALL_OPERATIONS
 from .functions import get_view_class_name, get_base_view_class, get_table_class_name
-
-from django_toolkit.functions.debug import *
 
 
 class ViewCreatorMixin:
@@ -38,11 +36,12 @@ class ViewCreatorMixin:
                 )
                 files.add(file) if file else None
 
-                insert_lines_in_file(
+                insert_line_in_file(
                     file_path=init_file_path,
                     anchor="",
-                    lines_to_insert=[f"from .{model_name.lower()}_views import *"],
+                    line_to_insert=f"from .{model_name.lower()}_views import *",
                     position="after",
+                    check_string=f"from .{model_name.lower()}_views import *",
                 )
         return files
 
@@ -51,8 +50,9 @@ class ViewCreatorMixin:
         """Generate the content for a model's view file."""
         lines = ""
         model_class = model_info["model_class"]
+        is_read_only = bool(getattr(model_class._meta, "read_only", False))
 
-        if model_class._meta.read_only:
+        if is_read_only:
             view_types = READ_ONLY_OPERATIONS
             lines += f"from django_toolkit.views import DTListView, DTDetailView\n"
         else:

@@ -9,12 +9,12 @@
         {% endif %}
     >
 
-    {% if not row.required %}
+    {% if not row.required and not row.multiple %}
         <option value="">{{ global_none }}</option>
     {% endif %}
 
     {% for value, display in row.select_data.items %}
-        {% if row.value == value %}
+        {% if row.field.value == value or value in row.field.value %}
             <option value="{{ value }}" selected>{{ display }}</option>
         {% else %}
             <option value="{{ value }}">{{ display }}</option>

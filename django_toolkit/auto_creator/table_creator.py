@@ -1,7 +1,7 @@
 from typing import Dict
 from pathlib import Path
-from django_toolkit.functions.files import insert_lines_in_file, create_file
-from .functions import get_comment_header, get_table_class_name
+from django_toolkit.functions.files import insert_line_in_file, create_file
+from .functions import get_table_class_name
 
 
 class TableCreatorMixin:
@@ -32,10 +32,11 @@ class TableCreatorMixin:
                 )
                 files.add(file) if file else None
 
-                insert_lines_in_file(
+                insert_line_in_file(
                     file_path=init_file_path,
                     anchor="",
-                    lines_to_insert=[f"from .{model_name.lower()}_table import {get_table_class_name(model_class.__name__)}"],
+                    line_to_insert=f"from .{model_name.lower()}_table import {get_table_class_name(model_class.__name__)}",
+                    check_string=f"from .{model_name.lower()}_table import",
                 )
         return files
 

@@ -2,10 +2,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission
-from django.urls import reverse
+from django.utils.safestring import mark_safe
 from .base_models import DTHistoryChangeLoggingModel
 from .group import DTGroup
-from ..template_context.card import Card
+from ..template_context.card_definition import CardDefinition
+from ..functions.debug import *
+from ..functions.permissions import get_perm_action_from_permission
 
 
 class DTUserManager(BaseUserManager):
@@ -49,6 +51,11 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
         unique=True,
         verbose_name=_('eMail'),
         help_text=_('eMail adress of the user. Used to identify the user (must be unique)'),
+    )
+    password = models.CharField(
+        verbose_name=_("password"),
+        max_length=128,
+        help_text=_("Password of the user. Will be stored in hashed form."),
     )
     groups = models.ManyToManyField(
         to=DTGroup,
@@ -97,25 +104,26 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
         verbose_name_plural = _('Users')
         base_url = 'users'
         cards = [
-            [  # Column 0
-                Card(
+            [
+                CardDefinition(
                     header=_('User'),
-                    fields=['email', 'groups']
+                    fields=['email', 'groups', 'is_active'],
                 ),
-                Card(
+                CardDefinition(
                     header=_('Special Rights'),
-                    fields=['is_active', 'is_staff', 'user_permissions']
+                    fields=['is_staff', 'is_superuser', 'user_permissions', 'permissions', ],
+                    ro_fields=['permissions', ],
                 ),
             ],
-            [  # Column 1
-                Card(
+            [
+                CardDefinition(
                     header=_('Comments'),
                     fields=['comment']
                 ),
-                Card(
+                CardDefinition(
                     header=_('Internal'),
-                    fields=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser'],
-                    read_only=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser']
+                    fields=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user', ],
+                    ro_fields=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user',]
                 ),
             ]
         ]
@@ -124,38 +132,46 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
     def __str__(self):
         return self.email
     
-    def get_absolute_url(self):
-        return reverse('user:user-detail', args=[self.pk])
+    @property
+    def group_permissions(self):
+        return Permission.objects.filter(usergroup__user=self).distinct()
     
-    # def get_user_permissions(self, obj=None):
-    #     return user_get_permissions(self, obj, "user")
 
-    # def get_group_permissions(self, obj=None):
-    #     return user_get_permissions(self, obj, "group")
+    @property
+    def permissions(self):
+        """Permissions with origin (User / Group names)."""
+        origins: dict[str, dict[str, set[str]]] = {}
 
-    # def get_all_permissions(self, obj=None):
-    #     return user_get_permissions(self, obj, "all")
+        def model_label(perm: Permission) -> str:
+            model_cls = perm.content_type.model_class()
+            if model_cls is None:
+                return f"{perm.content_type.app_label.title()} | {perm.content_type.model}"
+            return f"{model_cls._meta.app_label.title()} | {model_cls.__name__}"
 
-    # def has_perm(self, perm, obj=None):
-    #     # Active superusers have all permissions.
-    #     if self.is_active and self.is_superuser:
-    #         return True
+        def origin_sort_key(origin: str) -> tuple[int, str]:
+            return (0, origin) if origin == "User" else (1, origin)
 
-    #     # Otherwise we need to check the backends.
-    #     return user_has_perm(self, perm, obj)
+        for perm in self.user_permissions.all():
+            label = model_label(perm)
+            action = get_perm_action_from_permission(perm)
+            origins.setdefault(label, {}).setdefault(action, set()).add("User")
 
-    # def has_perms(self, perm_list, obj=None):
-    #     if not isinstance(perm_list, Iterable) or isinstance(perm_list, str):
-    #         raise ValueError("perm_list must be an iterable of permissions.")
-    #     return all(self.has_perm(perm, obj) for perm in perm_list)
+        for group in self.groups.all().prefetch_related("permissions"):
+            for perm in group.permissions.all():
+                label = model_label(perm)
+                action = get_perm_action_from_permission(perm)
+                origins.setdefault(label, {}).setdefault(action, set()).add(group.name)
 
-    # def has_module_perms(self, app_label):
-    #     """
-    #     Return True if the user has any permissions in the given app label.
-    #     Use similar logic as has_perm(), above.
-    #     """
-    #     # Active superusers have all permissions.
-    #     if self.is_active and self.is_superuser:
-    #         return True
+        def sort_actions(actions: set[str]) -> list[str]:
+            order = ["view", "add", "change", "delete"]
+            return sorted(actions, key=lambda a: order.index(a) if a in order else 99)
 
-    #     return user_has_module_perms(self, app_label)
+        lines = []
+        for label in sorted(origins.keys()):
+            action_parts = []
+            for action in sort_actions(set(origins[label].keys())):
+                origin_list = sorted(origins[label][action], key=origin_sort_key)
+                action_parts.append(f"{action} ({', '.join(origin_list)})")
+            lines.append(f"{label} [{', '.join(action_parts)}]")
+
+        return mark_safe("<br>".join(lines))

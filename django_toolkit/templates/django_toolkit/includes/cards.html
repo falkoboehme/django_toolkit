@@ -5,20 +5,24 @@
         {# the number of card columns depends on the length of the card list in the model meta information #}
         <div class="col col-md-{{ 12|divide:card_column_count }}">
             {% for card in card_col %}
-                <div class="card">
-                    <div class="card-header">
-                        <h5>{{ card.header }}</h5>
-                    </div>    
-                    <div class="card-body">
-                        <table class="table table-hover attr-table">
-                            <tbody>
-                                {% for row in card.rows %}
-                                    {% include 'django_toolkit/includes/field.html' %}
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                {% if card.is_placeholder %}
+                    <div class="card" style="visibility: hidden;"></div>
+                {% else %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>{{ card.header }}</h5>
+                        </div>    
+                        <div class="card-body">
+                            <table class="table table-hover attr-table">
+                                <tbody>
+                                    {% for row in card.rows %}
+                                        {% include 'django_toolkit/includes/card_row.html' with row=row %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                {% endif %}
                 {% if card.ajax_js %}
                     <script type="text/javascript">
                         {{ card.ajax_js }}

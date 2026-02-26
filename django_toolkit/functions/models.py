@@ -1,5 +1,6 @@
 from django.apps import apps
-from .permissions import ALL_OPERATIONS
+from django.db import models
+from .permissions import ALL_OPERATIONS, PERMISSIION_ACTION
 
 
 def get_app_label(model):
@@ -69,18 +70,19 @@ def get_obj_url(obj):
     return model.get_absolute_url(obj)
 
 
-# def generate_link_to_obj(obj, user=None):
-#     if user:
-#         required_permission = build_permission_for_model_operation(obj._meta.model, "view")
-#         if hasattr(obj._meta.model, "get_absolute_url") and user.has_perm(required_permission, obj):
-#             return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
-#         else:
-#             return str(obj)
-#     else:
-#         if hasattr(obj._meta.model, "get_absolute_url"):
-#             return f'<a href="{get_obj_url(obj)}">{str(obj)}</a>'
-#         else:
-#             return str(obj)
+def generate_link_to_obj(obj, user=None):
+    obj_str = str(obj)
+    if user:
+        required_permission = get_model_permission_name(obj._meta.model, "view")    # type: ignore
+        if hasattr(obj._meta.model, "get_absolute_url") and user.has_perm(required_permission, obj):
+            return f'<a href="{get_obj_url(obj)}">{obj_str}</a>'
+        else:
+            return obj_str
+    else:
+        if hasattr(obj._meta.model, "get_absolute_url"):
+            return f'<a href="{get_obj_url(obj)}">{obj_str}</a>'
+        else:
+            return obj_str
 
 
 def get_user_defined_models():
@@ -120,10 +122,12 @@ def get_fields_of_model(model, selector="all"):
                 if selector == "all":
                     fields.extend(card.fields)
                 elif selector == "ro":
-                    fields.extend(card.read_only)
+                    for field in card.fields:
+                        if field in card.ro_fields:
+                            fields.append(field)
                 elif selector == "rw":
                     for field in card.fields:
-                        if field not in card.read_only:
+                        if field not in card.ro_fields:
                             fields.append(field)
                 else:
                     raise Exception(
@@ -149,17 +153,21 @@ def get_related_name_from_field(field):
                 return key
 
 
-def get_model_operation_alias_name(model_name: str, operation: str) -> str:
-    """Create a URL name based on model name and operation"""
-    assert (
-        operation in ALL_OPERATIONS
-    ), f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
-    return f"{model_name.lower()}.{operation}"
+def get_model_operation_name(model: models.Model, operation: str) -> str:
+    """Create a URL name based on model name and operation (e.g. 'user.list' or 'user.create')"""
+    assert operation in ALL_OPERATIONS, f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
+    return f"{model._meta.model_name.lower()}.{operation}"  # type: ignore
 
 
-def get_model_operation_url(model, operation: str) -> str:
-    """Create a URL based on model name and operation"""
-    assert (
-        operation in ALL_OPERATIONS
-    ), f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
+def get_model_permission_name(model: models.Model, perm: str) -> str:
+    """Create a permission name based on model name and operation (e.g. 'user.view' or 'user.add')"""
+    assert perm in PERMISSIION_ACTION, f"Invalid permission '{perm}'. Must be one of {PERMISSIION_ACTION}"
+    return f"{model._meta.model_name.lower()}.{perm}"   # type: ignore
+
+
+def get_model_operation_url(model: models.Model, operation: str) -> str:
+    """Create a URL based on model name and operation (e.g. '/user/' or '/user/<id>/' or '/user/add/')"""
+    assert operation in ALL_OPERATIONS, f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
     return f"/{model._meta.app_label}/{get_model_url(model)}/{operation}/"
+
+

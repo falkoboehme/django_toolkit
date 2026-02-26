@@ -1,9 +1,19 @@
-{% if button.attr and button.icon %}
-    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}" {{ button.attr }}>{{ button.icon }} {{ button.name }}</a>
-{% elif button.attr and not button.icon %}
-    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}" {{ button.attr }}>{{ button.name }}</a>
-{% elif not button.attr and button.icon %}
-    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}">{{ button.icon }} {{ button.name }}</a>
-{% elif not button.attr and not button.icon %}
-    <a href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}">{{ button.name }}</a>
+{% if button.attr and 'type=' in button.attr %}
+    {# Render as button element for type="submit", type="reset", etc. #}
+    {% if button.icon %}
+        <button {{ button.attr }} class="{{ button.cls }} {{ button.color }}">{{ button.icon }} {{ button.name }}</button>
+    {% else %}
+        <button {{ button.attr }} class="{{ button.cls }} {{ button.color }}">{{ button.name }}</button>
+    {% endif %}
+{% else %}
+    {# Render as link #}
+    {% if button.attr and button.icon %}
+        <a role="button" href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}" {{ button.attr }}>{{ button.icon }} {{ button.name }}</a>
+    {% elif button.attr and not button.icon %}
+        <a role="button" href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}" {{ button.attr }}>{{ button.name }}</a>
+    {% elif not button.attr and button.icon %}
+        <a role="button" href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}">{{ button.icon }} {{ button.name }}</a>
+    {% elif not button.attr and not button.icon %}
+        <a role="button" href="{{ button.href }}" class="{{ button.cls }} {{ button.color }}">{{ button.name }}</a>
+    {% endif %}
 {% endif %}

@@ -1,302 +1,122 @@
 """
-Card Template Classes for rendering detail/edit views with cards
-Uses Django's native Form and Model systems
+Card template context for rendering a CardDefinition.
 """
+from __future__ import annotations
+
+from django.core.exceptions import FieldDoesNotExist
+from django.db import models
+from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
-from django.forms import BoundField
-from django.db import models
-from django.conf import settings
-from datetime import datetime, date, time
-from ..functions.format import django_format_to_python
 
-
-class CardRow:
-    """Wrapper around Django BoundField or model field for consistent interface"""
-    
-    def __init__(
-        self,
-        bound_field: BoundField | None = None,
-        model_instance: models.Model | None = None,
-        field_name: str | None = None,
-        display: str | None = None,
-        value: any = None,
-        **kwargs
-    ):
-        """
-        Initialize a card row from Django BoundField or Model field.
-        
-        Args:
-            bound_field: Django BoundField from a form (for edit views)
-            model_instance: Model instance (for detail views)
-            field_name: Field name if using model_instance
-            display: Override label (optional)
-            value: Override value (optional)
-            **kwargs: Additional attributes
-        """
-        self.bound_field = bound_field
-        self.model_instance = model_instance
-        self.field_name = field_name
-        self._display = display
-        self._value = value
-        self.__dict__.update(kwargs)
-    
-    @property
-    def id(self) -> str:
-        """Field ID for HTML"""
-        if self.bound_field:
-            return self.bound_field.id_for_label
-        return f"id_{self.field_name}"
-    
-    @property
-    def display(self) -> str:
-        """Field label"""
-        if self._display:
-            return self._display
-        if self.bound_field:
-            return self.bound_field.label
-        if self.model_instance and self.field_name:
-            field = self.model_instance._meta.get_field(self.field_name)
-            return field.verbose_name.capitalize()
-        return self.field_name or ""
-    
-    @property
-    def value(self) -> any:
-        """Field value"""
-        raw_value = None
-        
-        if self._value is not None:
-            raw_value = self._value
-        elif self.bound_field:
-            raw_value = self.bound_field.value()
-        elif self.model_instance and self.field_name:
-            raw_value = getattr(self.model_instance, self.field_name)
-        
-        # Format DateTime/Date/Time fields using settings
-        if raw_value is not None:
-            if isinstance(raw_value, datetime):
-                django_datetime_format = getattr(settings, 'DATETIME_FORMAT', 'Y-m-d H:i:s')
-                python_format = django_format_to_python(django_datetime_format)
-                return raw_value.strftime(python_format)
-            elif isinstance(raw_value, date):
-                django_date_format = getattr(settings, 'DATE_FORMAT', 'Y-m-d')
-                python_format = django_format_to_python(django_date_format)
-                return raw_value.strftime(python_format)
-            elif isinstance(raw_value, time):
-                django_time_format = getattr(settings, 'TIME_FORMAT', 'H:i:s')
-                python_format = django_format_to_python(django_time_format)
-                return raw_value.strftime(python_format)
-        
-        return raw_value
-    
-    @property
-    def required(self) -> bool:
-        """Whether field is required"""
-        if self.bound_field:
-            return self.bound_field.field.required
-        return False
-    
-    @property
-    def help(self) -> str:
-        """Help text"""
-        if self.bound_field:
-            return self.bound_field.help_text or ""
-        if self.model_instance and self.field_name:
-            field = self.model_instance._meta.get_field(self.field_name)
-            return field.help_text or ""
-        return ""
-    
-    @property
-    def form(self) -> str:
-        """Widget type for rendering"""
-        if not self.bound_field:
-            return "display"  # Read-only display
-        
-        widget = self.bound_field.field.widget
-        widget_name = widget.__class__.__name__     # type: ignore
-        
-        # Map Django widgets to template names
-        widget_map = {
-            'TextInput': 'input_text',
-            'EmailInput': 'input_text',
-            'URLInput': 'input_text',
-            'NumberInput': 'input_number',
-            'Textarea': 'textarea',
-            'CheckboxInput': 'input_checkbox',
-            'Select': 'select',
-            'SelectMultiple': 'select',
-            'DateInput': 'input_date',
-            'DateTimeInput': 'input_datetime',
-            'TimeInput': 'input_time',
-        }
-        
-        return widget_map.get(widget_name, 'input_text')
-    
-    @property
-    def render_formular(self) -> bool:
-        """Whether to render as form input (True) or display value (False)"""
-        return self.bound_field is not None
-    
-    @property
-    def field(self):
-        """Access to the BoundField for direct template usage"""
-        return self.bound_field
+from .card_definition import CardDefinition
+from .card_row import CardRow
 
 
 class CardTemplate:
-    """Represents a card with header and fields"""
-    
+    """Represents one rendered card based on a CardDefinition."""
+
     def __init__(
         self,
-        header: str,
-        form: any = None,
+        card_definition: CardDefinition,
+        *,
+        form=None,   # type: ignore
         instance: models.Model | None = None,
-        fields: list[str] | None = None,
-        read_only: list[str] | None = None,
-        rows: list[CardRow] | None = None,
-        td_display_class: str = "",
-        td_value_class: str = "",
+        request: HttpRequest | None = None,
+        prebuilt_rows: list[CardRow] | None = None,
         ajax_js: str = "",
         template: str = "django_toolkit/includes/card.html",
-        **kwargs
+        is_placeholder: bool = False,
     ):
         """
-        Initialize a card template.
-        
-        Args:
-            header: Card header text
-            form: Django Form instance (for edit views)
-            instance: Model instance (for detail views)
-            fields: List of field names to include
-            read_only: List of field names that should be read-only (not editable in forms)
-            rows: Pre-built CardRow objects (optional)
-            td_display_class: CSS class for display column
-            td_value_class: CSS class for value column
-            ajax_js: JavaScript code to inject
-            template: Path to the template file
-            **kwargs: Additional attributes
+        Initialize card rendering context.
+
+        card_definition: Card definition with `header`, `fields` and `ro_fields`.
+        form: Django form for editable rows.
+        instance: Model instance for display rows and read-only fallbacks.
+        request: Current request, passed to `CardRow`.
+        prebuilt_rows: Prebuilt rows. If set, automatic row generation is skipped.
+        ajax_js: Optional inline JavaScript rendered below the card.
+        template: Template path used by `render()`.
+
+        Notes:
+            - Card-level `self.read_only` is computed automatically and is `True` only
+              when all configured fields are read-only.
         """
-        self.header = header
+        self.header = card_definition.header or ""
         self._form = form
         self._instance = instance
-        self._fields = fields or []
-        self._read_only = read_only or []
-        self._rows = rows
-        self.td_display_class = td_display_class
-        self.td_value_class = td_value_class
+        self._request = request
+        self._fields = card_definition.fields or []
+        self._ro_fields = card_definition.ro_fields or []
+        self._rows = prebuilt_rows
         self.ajax_js = ajax_js
         self.template = template
-        self.__dict__.update(kwargs)
-    
+        self.is_placeholder = is_placeholder
+
+        if self.is_placeholder:
+            self.header = ""
+            self._rows = []
+
+        self.is_read_only = bool(self._fields) and set(self._fields) == set(self._ro_fields)
+
     @property
     def rows(self) -> list[CardRow]:
-        """Generate rows automatically from form or instance"""
-        if self._rows:
+        """Build all card rows from form or instance."""
+        if self.is_placeholder:
+            return []
+
+        if self._rows is not None:
             return self._rows
-        
-        rows = []
+
+        generated_rows: list[CardRow] = []
         for field_name in self._fields:
-            # Check if field should be read-only
-            is_read_only = field_name in self._read_only
-            
-            if self._form and field_name in self._form.fields and not is_read_only:
-                # Editable form field
-                rows.append(CardRow(bound_field=self._form[field_name]))
-            elif self._instance:
-                # Read-only display (DetailView or read_only field in form)
-                rows.append(CardRow(
-                    model_instance=self._instance,
-                    field_name=field_name
-                ))
-        
-        return rows
-    
-    def add_row(self, row: CardRow) -> None:
-        """Add a row to the card"""
-        if self._rows is None:
-            self._rows = []
-        self._rows.append(row)
-    
+            is_read_only = field_name in self._ro_fields
+
+            if self._form is not None and field_name in self._form.fields and not is_read_only:
+                generated_rows.append(
+                    CardRow(
+                        bound_field=self._form[field_name],
+                        request=self._request,
+                    )
+                )
+                continue
+
+            if self._instance is not None:
+                try:
+                    field = self._instance._meta.get_field(field_name)
+                except FieldDoesNotExist:
+                    field = None
+
+                generated_rows.append(
+                    CardRow(
+                        model_instance=self._instance,
+                        field=field,
+                        field_name=field_name,
+                        request=self._request,
+                    )
+                )
+
+        return generated_rows
+
+    def context(self) -> dict:
+        """Return template context structure used by existing card views."""
+        return {
+            "header": self.header,
+            "rows": self.rows,
+            "ajax_js": self.ajax_js,
+            "is_read_only": self.is_read_only,
+            "is_placeholder": self.is_placeholder,
+            "card": self,
+            "form": self._form,
+        }
+
+
     def render(self, context: dict | None = None) -> str:
-        """
-        Render the card using its template.
-        
-        Args:
-            context: Additional context to pass to the template
-            
-        Returns:
-            Rendered HTML as safe string
-        """
+        """Render card HTML from template."""
         ctx = context or {}
-        ctx['card'] = self
-        if self._form:
-            ctx['form'] = self._form
+        ctx.update(self.context())
         return mark_safe(render_to_string(self.template, ctx))
-    
+
     def __str__(self) -> str:
         return self.render()
-
-
-class CardColumnTemplate:
-    """Represents a collection of cards in columns"""
-    
-    def __init__(
-        self,
-        cards: list[list[CardTemplate]] | None = None,
-        template: str = "django_toolkit/includes/cards.html",
-        **kwargs
-    ):
-        """
-        Initialize card columns.
-        
-        Args:
-            cards: List of card columns, where each column is a list of CardTemplate objects
-            template: Path to the template file
-            **kwargs: Additional attributes
-        """
-        self.cards = cards or []
-        self.template = template
-        self.__dict__.update(kwargs)
-    
-    @property
-    def card_column_count(self) -> int:
-        """Get the number of card columns"""
-        return len(self.cards) if self.cards else 1
-    
-    def add_column(self, column: list[CardTemplate]) -> None:
-        """Add a column of cards"""
-        self.cards.append(column)
-    
-    def add_card_to_column(self, card: CardTemplate, column_index: int = 0) -> None:
-        """
-        Add a card to a specific column.
-        
-        Args:
-            card: CardTemplate to add
-            column_index: Index of the column (creates new columns if needed)
-        """
-        # Ensure column exists
-        while len(self.cards) <= column_index:
-            self.cards.append([])
-        
-        self.cards[column_index].append(card)
-    
-    def render(self, context: dict | None = None) -> str:
-        """
-        Render all card columns using the template.
-        
-        Args:
-            context: Additional context to pass to the template
-            
-        Returns:
-            Rendered HTML as safe string
-        """
-        ctx = context or {}
-        ctx['cards'] = self.cards
-        ctx['card_column_count'] = self.card_column_count
-        return mark_safe(render_to_string(self.template, ctx))
-    
-    def __str__(self) -> str:
-        return self.render()
-
-

@@ -1,4 +1,4 @@
-from .generic_views import DTView
+from .base import DTView
 
 class HomeView(DTView):
     template_name = 'django_toolkit/home.html'

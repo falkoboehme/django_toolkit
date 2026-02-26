@@ -3,9 +3,10 @@ Card Builder Mixin for automatic card generation from Django models
 """
 from django.db import models
 from django.forms import ModelForm
-from ..template_context.card_template import CardTemplate, CardColumnTemplate
-from ..template_context.card import Card as CardConfig
+from ..template_context.card_template import CardTemplate
+from ..template_context.card_definition import CardDefinition
 
+from ..functions.debug import *
 
 class CardBuilderMixin:
     """
@@ -13,18 +14,9 @@ class CardBuilderMixin:
     Can be used in DetailView, CreateView, UpdateView.
     """
     
-    # Define card layout in your view class
-    card_layout: list[list[CardConfig | dict[str, any]]] | None = None
-    
-    def get_card_layout(self) -> list[list[CardConfig | dict[str, any]]]:
+    def get_card_definition(self) -> list[list[CardDefinition]]:
         """
-        Get card layout configuration as nested list (columns with cards).
-        
-        Priority:
-        1. View's card_layout attribute
-        2. Model's Meta.cards attribute
-        3. View's fields attribute (single column, single card)
-        4. All editable model fields (single column, single card)
+        Get card definition configuration from Model Meta.
         
         Returns:
             Nested list: list of columns, each containing list of cards
@@ -43,27 +35,30 @@ class CardBuilderMixin:
                         ],
                     ]
         """
-        # 1. Check view's card_layout attribute
-        if self.card_layout:
-            return self.card_layout
-        
-        # 2. Check model's Meta.cards
-        if hasattr(self.model._meta, 'cards'):
-            return self.model._meta.cards
-        
-        # 3. Use view's fields attribute (single column, single card)
-        if hasattr(self, 'fields') and self.fields:
-            return [[CardConfig(header=self.model._meta.verbose_name, fields=list(self.fields))]]
-        
-        # 4. Fallback: all editable model fields (single column, single card)
-        fields = [f.name for f in self.model._meta.fields if f.editable]
-        return [[CardConfig(header=self.model._meta.verbose_name, fields=fields)]]
+        if not hasattr(self.model._meta, 'cards'):  # type: ignore
+            raise ValueError(f"Model {self.model.__name__} must define Meta.cards") # type: ignore
+        return self.model._meta.cards   # type: ignore
     
+
+    def get_card_context(self):
+        context = {}
+        card_definition = self.get_card_definition()
+        context['card_column_count'] = len(card_definition)   # Number ob card columns
+        context['cards'] = []
+        for card_col in card_definition:
+            card_col_dict = []
+            for card_def in card_col:
+                card_template = CardTemplate(
+                    card_definition=card_def,
+                )
+
+
+
     def build_cards(
         self,
         instance: models.Model | None = None,
         form: ModelForm | None = None
-    ) -> CardColumnTemplate:
+    ):
         """
         Build card structure from nested layout configuration.
         
@@ -74,37 +69,45 @@ class CardBuilderMixin:
         Returns:
             CardColumnTemplate ready for rendering
         """
-        card_columns = CardColumnTemplate()
+        #card_columns = CardColumnTemplate()
         card_layout = self.get_card_layout()
+        pprint(card_layout)
+        for column_index, card_list in enumerate(card_layout):
+            print(column_index)
+            pprint(card_list)
+
         
         # Process nested format: each element is a column containing cards
-        for column_index, column_cards in enumerate(card_layout):
-            for card_config in column_cards:
-                # Support both Card objects and dicts
-                if isinstance(card_config, CardConfig):
-                    header = card_config.header
-                    fields = card_config.fields
-                    read_only = card_config.read_only or []
-                else:
-                    # Dict format (backwards compatible)
-                    header = card_config.get('header', '')
-                    fields = card_config.get('fields', [])
-                    read_only = card_config.get('read_only', [])
+        # for column_index, column_cards in enumerate(card_layout):
+        #     for card_config in column_cards:
+        #         # Support both Card objects and dicts
+        #         if isinstance(card_config, CardDefinition):
+        #             header = card_config.header
+        #             fields = card_config.fields
+        #             read_only = card_config.ro_fields or []
+        #         else:
+        #             # Dict format (backwards compatible)
+        #             header = card_config.get('header', '')
+        #             fields = card_config.get('fields', [])
+        #             read_only = card_config.get('read_only', [])
+        #             one_element_per_line = card_config.get('one_element_per_line', [])
                 
-                card = CardTemplate(
-                    header=header,
-                    form=form,
-                    instance=instance,
-                    fields=fields,
-                    read_only=read_only
-                )
-                card_columns.add_card_to_column(card, column_index)
+        #         card = CardTemplate(
+        #             header=header,
+        #             form=form,
+        #             instance=instance,
+        #             request=self.request,   # type: ignore
+        #             fields=fields,
+        #             read_only=read_only,
+        #         )
+        #         # card_columns.add_card_to_column(card, column_index)
         
-        return card_columns
+        # return card_columns
     
-    def get_context_data(self, **kwargs):
+
+    def get_context_data(self, **kwargs) -> dict:
         """Add cards to context"""
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)    # type: ignore
         
         # Determine if we have form or instance
         form = context.get('form')

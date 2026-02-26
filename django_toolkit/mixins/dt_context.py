@@ -5,7 +5,7 @@ from ..template_context.icon import icon_rest_api, icon_swagger_v2, icon_swagger
 # from ..templatetags.calc import *
 
 import logging
-log = logging.getLogger("django_toolkit")
+log = logging.getLogger("toolkit")
 
 import importlib
 from django.conf import settings

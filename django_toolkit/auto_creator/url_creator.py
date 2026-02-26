@@ -2,8 +2,8 @@
 URL Creator Mixin for ModelAutoCreator
 """
 
-from ..functions.files import insert_lines_in_file, create_file
-from ..functions.models import get_model_operation_alias_name
+from ..functions.files import insert_lines_in_file, insert_line_in_file, create_file
+from ..functions.models import get_model_operation_name
 from ..functions.permissions import READ_ONLY_OPERATIONS, ALL_OPERATIONS
 from .functions import get_comment_header, get_view_class_name
 
@@ -34,20 +34,21 @@ class URLCreatorMixin:
 
         # Insert app URL includes
         for app_label, models in self._registry.items():
-            file = insert_lines_in_file(
+            include_line = f"    path('{app_label}/', include('{app_label}.urls'))," 
+            file = insert_line_in_file(
                 file_path=project_urls_path,
                 anchor="urlpatterns = [",
-                lines_to_insert=[
-                    f"    path('{app_label}/', include('{app_label}.urls')),"
-                ],
+                line_to_insert=include_line,
+                check_string=f"path('{app_label}/', include('{app_label}.urls'))",
             )
             files.add(file) if file else None
 
         header_user_apps = get_comment_header("User Apps")
-        file = insert_lines_in_file(
+        file = insert_line_in_file(
             file_path=project_urls_path,
             anchor="urlpatterns = [",
-            lines_to_insert=[f"    {header_user_apps}"],
+            line_to_insert=f"    {header_user_apps}",
+            check_string=f"    {header_user_apps}",
         )
         files.add(file) if file else None
 
@@ -108,15 +109,17 @@ class URLCreatorMixin:
         model_class = model_info["model_class"]
         header = get_comment_header(model_class.__name__)
 
-        lines.append(f"    {header}\n")
-        view_types = (
-            READ_ONLY_OPERATIONS if model_class._meta.read_only else ALL_OPERATIONS
+        lines.append(f"")
+        lines.append(f"    {header}")
+        is_read_only = bool(getattr(model_class._meta, "read_only", False))
+        operations = (
+            READ_ONLY_OPERATIONS if is_read_only else ALL_OPERATIONS
         )
 
-        for view_type in view_types:
-            url_pattern = self._get_url_pattern(model_class.__name__, view_type)
-            view_name = get_view_class_name(model_class.__name__, view_type)
-            url_name = get_model_operation_alias_name(model_class.__name__, view_type)
+        for operation in operations:
+            url_pattern = self._get_url_pattern(model_class.__name__, operation)
+            view_name = get_view_class_name(model_class.__name__, operation)
+            url_name = get_model_operation_name(model_class, operation)
             lines.append(
                 f"    path('{url_pattern}', views.{view_name}.as_view(), name='{url_name}'),"
             )
@@ -124,16 +127,16 @@ class URLCreatorMixin:
         return lines
 
     @staticmethod
-    def _get_url_pattern(model_name: str, view_type: str) -> str:
-        """Create a URL pattern based on model name and view type"""
-        assert view_type in ALL_OPERATIONS, "Invalid view type"
+    def _get_url_pattern(model_name: str, operation: str) -> str:
+        """Create a URL pattern based on model name and operation"""
+        assert operation in ALL_OPERATIONS, "Invalid operation for URL pattern"
 
-        if view_type == "list":
+        if operation == "list":
             return f"{model_name.lower()}s/"
-        elif view_type == "add":
-            return f"{model_name.lower()}s/{view_type}/"
-        elif view_type == "detail":
+        elif operation == "create":
+            return f"{model_name.lower()}s/{operation}/"
+        elif operation == "detail":
             return f"{model_name.lower()}s/<int:pk>/"
-        elif view_type in ["change", "delete"]:
-            return f"{model_name.lower()}s/<int:pk>/{view_type}/"
+        elif operation in ["update", "delete"]:
+            return f"{model_name.lower()}s/<int:pk>/{operation}/"
         return ""

@@ -27,65 +27,21 @@ def is_in_file(filename, string):
     return False
 
 
-def insert_lines_in_file(
+def insert_line_in_file(
     file_path: str | Path,
     anchor: str,
-    lines_to_insert: list[str],
+    line_to_insert: str,
     position: Literal["before", "after"] = "after",
-    check_as_block: bool = False,
-    skip_if_any_exists: bool = False,
+    check_string: str | None = None,
 ) -> str | bool:
     """
-    Insert multiple lines in a file relative to an anchor string.
+    Insert a single line in a file relative to an anchor string.
 
-    Args:
-        file_path: Path to the file to modify
-        anchor: String to search for in the file
-        lines_to_insert: List of lines to insert (each line should include its own indentation)
-        position: Insert 'before' or 'after' the anchor
-        check_as_block: If True, check if all lines exist as a consecutive block in the file.
-                       If False, check each line individually and insert only missing lines.
-        skip_if_any_exists: If True, skip insertion if ANY line exists (all must be missing).
-                           If False (default), insert only missing lines (filter out existing ones).
+    If `check_string` exists in the file, insertion is skipped.
+    If `check_string` is not provided, `line_to_insert` is used for the existence check.
 
     Returns:
-        The path of the modified file if lines were inserted, or False if no changes were made.
-
-    Example:
-        # Insert only missing imports (default behavior)
-        insert_lines_in_file(
-            'urls.py',
-            anchor='from django.urls import',
-            lines_to_insert=[
-                'from django_toolkit.models import AutoModelRegistry',
-                'from django_toolkit.views import AutoViewRegistry'
-            ],
-            position='after'
-        )
-
-        # Skip insertion if ANY line already exists
-        insert_lines_in_file(
-            'urls.py',
-            anchor='from django.urls import',
-            lines_to_insert=[
-                'from django_toolkit.models import AutoModelRegistry',
-                'from django_toolkit.views import AutoViewRegistry'
-            ],
-            position='after',
-            skip_if_any_exists=True
-        )
-
-        # Insert multiple URL patterns as a block
-        insert_lines_in_file(
-            'urls.py',
-            anchor='urlpatterns = [',
-            lines_to_insert=[
-                "    path('api/', include('api.urls')),",
-                "    path('admin/', include('admin.urls')),"
-            ],
-            position='after',
-            check_as_block=True
-        )
+        The path of the modified file if a line was inserted, or False if no changes were made.
     """
     file_path = Path(file_path)
 
@@ -95,24 +51,9 @@ def insert_lines_in_file(
     # Read file content
     content = file_path.read_text(encoding="utf-8")
 
-    # Check if lines already exist
-    if check_as_block:
-        # Check if all lines exist as a consecutive block
-        block_to_check = "\n".join(lines_to_insert)
-        if block_to_check in content:
-            return False
-    else:
-        # Check each line individually
-        if skip_if_any_exists:
-            # Skip if ANY line exists (all must be missing)
-            for line_to_check in lines_to_insert:
-                if line_to_check in content:
-                    return False
-        else:
-            # Skip only if ALL lines exist (filter out existing lines)
-            lines_to_insert = [line for line in lines_to_insert if line not in content]
-            if not lines_to_insert:
-                return False  # All lines already exist
+    string_to_check = check_string if check_string is not None else line_to_insert
+    if string_to_check in content:
+        return False
 
     # Check if anchor exists
     if anchor not in content:
@@ -135,9 +76,7 @@ def insert_lines_in_file(
             else anchor_start_line + anchor_line_count
         )
 
-        # Insert all lines at the position
-        for idx, line_to_insert in enumerate(lines_to_insert):
-            lines.insert(insert_index + idx, line_to_insert)
+        lines.insert(insert_index, line_to_insert)
 
         # Write back
         file_path.write_text("\n".join(lines), encoding="utf-8")
@@ -148,15 +87,71 @@ def insert_lines_in_file(
             # Insert before or after
             insert_index = i if position == "before" else i + 1
 
-            # Insert all lines at the position
-            for idx, line_to_insert in enumerate(lines_to_insert):
-                lines.insert(insert_index + idx, line_to_insert)
+            lines.insert(insert_index, line_to_insert)
 
             # Write back
             file_path.write_text("\n".join(lines), encoding="utf-8")
             return file_path.as_posix()
 
     return False
+
+
+def insert_lines_in_file(
+    file_path: str | Path,
+    anchor: str,
+    lines_to_insert: list[str],
+    position: Literal["before", "after"] = "after",
+    check_as_block: bool = False,
+    skip_if_any_exists: bool = False,
+) -> str | bool:
+    """
+    Insert multiple lines in a file relative to an anchor string.
+
+    `insert_line_in_file` performs the actual insertion. This function handles
+    multi-line checks and insertion order.
+
+    Returns:
+        The path of the modified file if lines were inserted, or False if no changes were made.
+    """
+    file_path = Path(file_path)
+    if not file_path.exists():
+        return False
+
+    if not lines_to_insert:
+        return False
+
+    content = file_path.read_text(encoding="utf-8")
+
+    if check_as_block:
+        block_to_check = "\n".join(lines_to_insert)
+        if block_to_check in content:
+            return False
+        lines_for_insert = lines_to_insert
+    else:
+        if skip_if_any_exists and any(line in content for line in lines_to_insert):
+            return False
+        lines_for_insert = [line for line in lines_to_insert if line not in content]
+        if not lines_for_insert:
+            return False
+
+    if position == "after":
+        ordered_lines = list(reversed(lines_for_insert))
+    else:
+        ordered_lines = lines_for_insert
+
+    modified_path: str | bool = False
+    for line_to_insert in ordered_lines:
+        file = insert_line_in_file(
+            file_path=file_path,
+            anchor=anchor,
+            line_to_insert=line_to_insert,
+            position=position,
+            check_string=line_to_insert,
+        )
+        if file:
+            modified_path = file
+
+    return modified_path
 
 
 def create_file(

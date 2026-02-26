@@ -1,6 +1,6 @@
 from ..functions.models import get_app_model_url
 from ..functions.permissions import get_permission_for_model
-# from .button import menu_button_add
+from .button import menu_button_create
 
 
 class MenuEntry:
@@ -21,10 +21,8 @@ class MenuEntry:
             add_perm = get_permission_for_model(model=model, action="add")
             self.title = model._meta.verbose_name_plural
             self.url = get_app_model_url(model) if view_perm in all_user_permissions else None
-            # if add_perm in all_user_permissions:
-            #     self.button_add = menu_button_add(model)
-                # TODO: Do we need this, or is the URL included in the Button?
-                # self.url_add = f"{self.url}add/"
+            if add_perm in all_user_permissions:
+                self.button_add = menu_button_create(model)
         else:
             self.title = title
             self.url = url if url else None

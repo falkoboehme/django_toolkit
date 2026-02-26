@@ -1,10 +1,6 @@
 <tr>
     {# display #}
-    {% if card.td_display_class %}
-        <td scope="row" class="{{ card.td_display_class }}">
-    {% else %}
-        <td scope="row">
-    {% endif %}
+    <td scope="row">
         <label for="{{ row.id }}" {% if row.required %}class="required"{% endif %}>
             {{ row.display }}
         </label>
@@ -12,11 +8,7 @@
 
 
     {# value #}
-    {% if card.td_value_class %}
-        <td class="{{ card.td_value_class }}">
-    {% else %}
-        <td>
-    {% endif %}
+    <td>
 
     {# render the formular (AddView or UpdateView) #}
         <div class="col">
@@ -24,6 +16,8 @@
                 {% include 'django_toolkit/input_forms/display.html' %}
             {% elif row.form == 'input_text' %}
                 {% include 'django_toolkit/input_forms/input_text.html' %}
+            {% elif row.form == 'input_password' %}
+                {% include 'django_toolkit/input_forms/input_password.html' %}
             {% elif row.form == 'input_number' %}
                 {% include 'django_toolkit/input_forms/input_number.html' %}
             {% elif row.form == 'input_checkbox' %}
@@ -53,13 +47,14 @@
     {# display errors for row #}
         {% if form.errors %}
             {% for field_name, errors in form.errors.items %}
-                {% if field_name == field.name %}
-                    {% for error in errors %}
-                        <small  class="text-danger">{{ error }}</small>  
-                    {% endfor %}
+                {% if field_name == row.field_name %}
+                    <div class="alert alert-danger alert-sm" role="alert">
+                        {% for error in errors %}
+                            <small class="d-block">{{ error }}</small>  
+                        {% endfor %}
+                    </div>
                 {% endif %}
             {% endfor %}
         {% endif %}
     </td>
 </tr>
-

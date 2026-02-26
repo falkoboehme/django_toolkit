@@ -1,7 +1,7 @@
 from django.contrib.auth.views import LoginView, LogoutView
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.contrib.auth import logout as auth_logout
+from django.contrib.auth import logout
 from ..forms import UserAuthenticationForm
 
 
@@ -17,5 +17,5 @@ class UserLogoutView(LogoutView):
     http_method_names = ["get"]
 
     def get(self, request, *args, **kwargs):
-        auth_logout(request)
+        logout(request)
         return HttpResponseRedirect(self.success_url)

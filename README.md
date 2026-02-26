@@ -23,6 +23,76 @@ import django_toolkit
 # Beispielverwendung hier
 ```
 
+### UserBasedQueryset (explizit)
+
+Du kannst zentrale, benutzerabhängige Filterregeln pro Modell definieren.
+Die Methodennamen folgen dem Schema `app_model` (z. B. `training_sportmodel`).
+
+1. Eigene Filterklasse anlegen:
+
+```python
+from django_toolkit.models import UserBasedQueryset
+
+
+class ProjectUserBasedQueryset(UserBasedQueryset):
+    def training_sportmodel(self, queryset, user):
+        if user and user.is_superuser:
+            return queryset
+        return queryset.none()
+```
+
+2. In `settings.py` konfigurieren:
+
+```python
+DT_USER_BASED_QUERYSET_CLASS = "training_planner.user_based_queryset.ProjectUserBasedQueryset"
+DT_USER_BASED_QUERYSET_DEFAULT = "all"  # "all" oder "empty"
+```
+
+3. Bei Bedarf explizit anwenden:
+
+```python
+queryset = Sport.for_user(request.user)
+```
+
+Standardzugriffe über `Model.objects...` bleiben unverändert (z. B. im Admin).
+
+Beispiel in einer ListView:
+
+```python
+class SportListView(DTListView):
+    model = Sport
+
+    def get_queryset(self):
+        return Sport.for_user(self.request.user)
+```
+
+Beispiel für ein einzelnes Objekt mit User-Filter:
+
+```python
+sport = Sport.for_user(request.user).get(pk=pk)
+```
+
+### Logging (Loggername: toolkit)
+
+Das Paket loggt über den Logger `toolkit`.
+
+```python
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "loggers": {
+        "toolkit": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
+```
+
 ## Entwicklung
 
 ### Package bauen

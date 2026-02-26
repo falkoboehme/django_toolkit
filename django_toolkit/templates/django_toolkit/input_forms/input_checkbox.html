@@ -1,7 +1,7 @@
 {% if row.render_formular and not card.read_only %}
     {# Create a form for changing/adding #}
     <div class="form-check form-switch">
-        <input type="checkbox" name="{{ row.name }}" class="form-check-input" style="{{ row.style }}"  id="{{ row.id }}" {% if row.value %}checked{% endif %}>
+        <input type="checkbox" name="{{ row.field.html_name }}" class="form-check-input" style="{{ row.style }}"  id="{{ row.id }}" {% if row.field.value %}checked{% endif %}>
     </div>
 {% else %}
     {# Just display the value #}

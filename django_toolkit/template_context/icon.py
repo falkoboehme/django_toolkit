@@ -2,40 +2,45 @@ import re
 from pathlib import Path
 from django.conf import settings
 from django.utils.safestring import mark_safe
+from .base_component import BaseComponent
 
 
 def icon_false(width=16, height=16, fillcolor='red'):
     return mark_safe(
-        SVGIcon(icon_name="close-thick", title="False", width=width, height=height, fillcolor=fillcolor).html
+        SVGIcon(icon_name="close-thick", title="False", width=width, height=height, fillcolor=fillcolor).render()
     )
 
 
 def icon_true(width=16, height=16, fillcolor='green'):
     return mark_safe(
-        SVGIcon(icon_name="check-bold", title="True", width=width, height=height, fillcolor=fillcolor).html
+        SVGIcon(icon_name="check-bold", title="True", width=width, height=height, fillcolor=fillcolor).render()
     )
 
 
 def icon_rest_api(width=32, height=32, fillcolor='blue'):
     return mark_safe(
-        SVGIcon(icon_name="rest-api", title="REST API", url="/api/", width=width, height=height, fillcolor=fillcolor).html
+        SVGIcon(icon_name="rest-api", title="REST API", url="/api/", width=width, height=height, fillcolor=fillcolor).render()
     )
 
 
 def icon_swagger_v2(width=32, height=32, fillcolor='blue'):
     return mark_safe(
-        SVGIcon(icon_name="swagger", title="Swagger API v2", url="/api/docs/swagger-v2/", width=width, height=height, fillcolor=fillcolor).html
+        SVGIcon(icon_name="swagger", title="Swagger API v2", url="/api/docs/swagger-v2/", width=width, height=height, fillcolor=fillcolor).render()
     )
 
 
 def icon_swagger_v3(width=32, height=32, fillcolor='blue'):
     return mark_safe(
-        SVGIcon(icon_name="swagger", title="Swagger API v3", url="/api/docs/swagger-v3/", width=width, height=height, fillcolor=fillcolor).html
+        SVGIcon(icon_name="swagger", title="Swagger API v3", url="/api/docs/swagger-v3/", width=width, height=height, fillcolor=fillcolor).render()
     )
 
 
 
-class SVGIcon:
+class SVGIcon(BaseComponent):
+    """SVG icon component rendered from static icon files."""
+
+    template_name = None
+
     def __init__(
             self,
             icon_name,
@@ -53,10 +58,25 @@ class SVGIcon:
         self.height = height
         self.viewbox = viewbox
         self.url = url
-        self.html = self.get_html()
 
 
-    def get_html(self):
+    def get_context(self):
+        return {
+            'icon_name': self.icon_name,
+            'title': self.title,
+            'fillcolor': self.fillcolor,
+            'width': self.width,
+            'height': self.height,
+            'viewbox': self.viewbox,
+            'url': self.url,
+        }
+
+
+    def render(self, context=None):
+        return self._build_svg_html()
+
+
+    def _build_svg_html(self):
         tags = self._extract_tags()
         if tags:
             title = f'<title>{self.title}</title>' if self.title else ''

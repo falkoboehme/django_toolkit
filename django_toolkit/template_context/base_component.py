@@ -5,10 +5,10 @@ from django.template.loader import render_to_string
 from typing import Optional, Dict, Any
 
 
-class Component:
+class BaseComponent:
     """Base class for all components"""
     
-    template_name: str = None
+    template_name: str | None = None  # Must be set in subclasses
     
     def render(self, context: Optional[Dict[str, Any]] = None) -> str:
         """Render the component to HTML"""

@@ -14,7 +14,7 @@
         {% endif %}
     
     {% if item.button_add %}
-        {% include 'django_toolkit/includes/button.html' with button=item.button_add %}
+        {{ item.button_add }}
     {% endif %}
 </li>
 {% endfor %}

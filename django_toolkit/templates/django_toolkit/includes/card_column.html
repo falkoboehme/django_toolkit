@@ -1,8 +1,0 @@
-{% load calc %}
-
-{# the number of card columns depends on the length of the card list #}
-<div class="col col-md-{% if width %}{{ width }}{% else %}{{ 12|divide:card_column_count }}{% endif %}">
-    {% for card in card_col %}
-        {% include 'django_toolkit/includes/card.html' %}
-    {% endfor %}
-</div>

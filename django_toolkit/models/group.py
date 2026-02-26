@@ -1,9 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import  Permission, GroupManager
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from .base_models import DTHistoryChangeLoggingModel
-from ..template_context.card import Card
+from ..template_context.card_definition import CardDefinition
 
 
 class DTGroup(DTHistoryChangeLoggingModel):
@@ -29,28 +28,29 @@ class DTGroup(DTHistoryChangeLoggingModel):
 
     objects = GroupManager()
 
+
     class Meta(DTHistoryChangeLoggingModel.Meta):
         abstract = True
         ordering = ['name',]
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
-        base_url = 'groups'
+        base_url = 'group'
         cards = [
             [
-                Card(
+                CardDefinition(
                     header=_('Group'),
                     fields=['name', 'permissions']
                 ),
             ],
             [
-                Card(
+                CardDefinition(
                     header=_('Comments'),
                     fields=['comment']
                 ),
-                Card(
+                CardDefinition(
                     header=_('Internal'),
                     fields=['created', 'created_user', 'last_updated', 'last_updated_user'],
-                    read_only=['created', 'created_user', 'last_updated', 'last_updated_user'],
+                    ro_fields=['created', 'created_user', 'last_updated', 'last_updated_user'],
                 ),
             ]
         ]
@@ -58,6 +58,3 @@ class DTGroup(DTHistoryChangeLoggingModel):
 
     def __str__(self):
         return self.name
-
-    def get_absolute_url(self):
-        return reverse('user:group-detail', args=[self.pk])

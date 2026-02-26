@@ -1,9 +1,9 @@
 <div class="control-group">
     {% for button in extra_buttons %}
-        {% include 'django_toolkit/includes/button.html' %}
+        {{ button }}
     {% endfor %}
 
     {% for button in control_buttons %}
-        {% include 'django_toolkit/includes/button.html' %}
+        {{ button }}
     {% endfor %}
 </div>

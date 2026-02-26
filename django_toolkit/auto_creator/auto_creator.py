@@ -12,6 +12,7 @@ from .view_creator import ViewCreatorMixin
 from .table_creator import TableCreatorMixin
 from .admin_creator import AdminCreatorMixin
 from .settings_creator import SettingsCreatorMixin
+from .user_based_queryset_creator import UserBasedQuerysetCreatorMixin
 from.menu_creator import MenuCreator
 
 from django_toolkit.functions.debug import *
@@ -22,6 +23,7 @@ class ModelAutoCreator(
     ViewCreatorMixin,
     TableCreatorMixin,
     AdminCreatorMixin,
+    UserBasedQuerysetCreatorMixin,
     MenuCreator,
 ):
     """Central registry for auto-registered models with automatic URL synchronization"""
@@ -62,6 +64,9 @@ class ModelAutoCreator(
         # Auto-create Menu (if needed)
         all_files.update(self._auto_create_menu())
 
+        # Auto-create project user_based_queryset.py (if needed)
+        all_files.update(self._auto_create_user_based_queryset())
+
         # Auto-create Tables for each app
         for app_label in self._registry:
             files = self._auto_create_app_tables(app_label)
@@ -70,6 +75,11 @@ class ModelAutoCreator(
         # Auto-create Views for each app
         for app_label in self._registry:
             files = self._auto_create_app_views(app_label)
+            all_files.update(files) if files else None
+
+        # Auto-create Admin for each app
+        for app_label in self._registry:
+            files = self._auto_create_admin(app_label)
             all_files.update(files) if files else None
 
         # Auto-create URLs for each app

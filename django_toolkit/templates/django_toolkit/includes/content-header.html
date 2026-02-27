@@ -1,4 +1,4 @@
-<div class="d-flex justify-content-between align-items-center px-3 pt-3">
+<div class="d-flex justify-content-between align-items-center px-3 pt-3 dtk-page-meta">
     <nav class="breadcrumb-container" aria-label="breadcrumb">
         {% if breadcrumbs %}
         <ol class="breadcrumb" aria-label="breadcrumbs">
@@ -15,7 +15,7 @@
         {% endif %}
     </div>
 </div>
-<div class="d-flex justify-content-between align-items-center px-3">
+<div class="d-flex justify-content-between align-items-center px-3 dtk-page-header">
     <div class="col col-8">
         <h3>{{ content_title }}</h3>
     </div>
@@ -27,7 +27,7 @@
 </div>
 
 {% if content_subtitle %}
-<div class="d-flex justify-content-between align-items-center px-3">
+<div class="d-flex justify-content-between align-items-center px-3 dtk-page-subtitle">
     <div class="object-subtitle">
         {{ content_subtitle }}
     </div>

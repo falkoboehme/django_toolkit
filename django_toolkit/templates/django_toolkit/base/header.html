@@ -1,11 +1,11 @@
 {% load static %}
-<header class="container-fluid main-bg">
-    <div class="row">
-        <div class="col col-10 col-md10">
-            
-        </div>
-
-        <div class="col col-2 col-md-2 align-items-right my-1">
+<header class="dtk-header">
+    <div class="dtk-header-inner">
+        <button type="button" class="btn btn-outline-secondary dtk-sidebar-toggle" id="dtk-sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true" aria-controls="dtk-sidenav">
+            <i class="mdi mdi-menu"></i>
+        </button>
+        <div class="dtk-header-spacer"></div>
+        <div class="dtk-header-profile">
             {% include 'django_toolkit/includes/profile-button.html' %}
         </div>
     </div>

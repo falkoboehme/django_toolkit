@@ -30,34 +30,28 @@
       <title>{{ page_title }}</title>
     {% endif %}
   </head>
-  <body>
-      <div class="row">
-        <!-- Sidebar -->
-        <nav class="col sidenav">
+  <body class="dtk-app">
+      <div class="dtk-layout" id="dtk-layout">
+        <aside class="sidenav" id="dtk-sidenav" aria-label="Sidebar navigation">
           {% include 'django_toolkit/base/sidebar.html' with user=user %}
-        </nav>
-        
-        <div class="col">
-          
-          <!-- Header -->
+        </aside>
+
+        <div class="dtk-sidenav-resize" id="dtk-sidenav-resize" role="separator" aria-orientation="vertical" aria-controls="dtk-sidenav" aria-label="Resize sidebar" tabindex="0"></div>
+
+        <main class="dtk-main">
           <div>
             {% include 'django_toolkit/base/header.html' with user=user %}
           </div>
 
-          <hr class="my-0">
-          
-          <!-- Page -->
-          <div>
+          <section class="dtk-content">
             {% block content-header %}{% endblock %}
             {% block content %}{% endblock %}
-          </div>
-          
-          <!-- Footer -->
+          </section>
+
           <div>
             {% include 'django_toolkit/base/footer.html' with execution_time=execution_time %}
           </div>
-
-        </div>
-    </div>
+        </main>
+      </div>
   </body>
 </html>

@@ -3,13 +3,14 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="container d-flex justify-content-center align-items-center">
-    <div class="row">
-        <div class="col-12">
-            <form class="p-5 bg-white rounded shadow" method="post">
+<div class="dtk-login-shell">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-5 col-xl-4">
+            <form class="dtk-login-card" method="post">
+                <h1 class="dtk-login-title">Login</h1>
                 {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit">Login</button>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
         </div>
     </div>

@@ -4,18 +4,19 @@
 {% block title %}{% endblock %}
 
 {% block content %}
-<div class="row my-5">
-    <div class="col-6 offset-3">
-        <div class="card">
-            <h5 class="card-header text-danger">
-                {{ header }}
-            </h5>
-            <div class="card-body">
-                {% block message %}{% endblock %}
+<div class="dtk-error-shell">
+    <div class="dtk-error-card card">
+        <div class="card-header dtk-error-header">
+            <div class="dtk-error-icon">
+                {% block icon %}<i class="mdi mdi-alert-circle-outline"></i>{% endblock %}
             </div>
-            <div class="card-footer text-end">
-                <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Home Page" %}</a>
-            </div>
+            <h5 class="dtk-error-title">{% block page_title %}{% endblock %}</h5>
+        </div>
+        <div class="card-body dtk-error-body">
+            {% block message %}{% endblock %}
+        </div>
+        <div class="card-footer text-end dtk-error-footer">
+            <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Home Page" %}</a>
         </div>
     </div>
 </div>

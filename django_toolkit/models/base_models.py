@@ -58,21 +58,21 @@ class DTBaseModel(models.Model):
         'cards',            # List of cards to display in detail view (list of columns with list of cards)
                             # cards = [
                             #     [  # Column 0
-                            #         Card(
+                            #         CardDefinition(
                             #             header=_('User'),
                             #             fields=['email', 'groups']
                             #         ),
-                            #         Card(
+                            #         CardDefinition(
                             #             header=_('Special Rights'),
                             #             fields=['is_active', 'is_staff', 'user_permissions']
                             #         ),
                             #     ],
                             #     [  # Column 1
-                            #         Card(
+                            #         CardDefinition(
                             #             header=_('Comments'),
                             #             fields=['comment']
                             #         ),
-                            #         Card(
+                            #         CardDefinition(
                             #             header=_('Internal'),
                             #             fields=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser'],
                             #             read_only=['last_login', 'created', 'created_user', 'last_updated', 'last_updated_user', 'is_superuser']
@@ -180,7 +180,4 @@ class DTModel(DTHistoryChangeLoggingModel):
     """
     Base model for all models with history and change logging
     """
-    class Meta(DTHistoryChangeLoggingModel.Meta, DTBaseModel.Meta):
-        abstract = True
-        history = True
-        read_only = False
+    pass

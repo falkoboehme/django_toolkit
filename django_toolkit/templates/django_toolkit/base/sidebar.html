@@ -1,20 +1,21 @@
 {% load static %}
 
-
-{% for item in menu_items %}
-<li class="nav-item">
-    {% if item.is_header %}
-        <span class="nav-group-label">{{ item.title }}</span>
-    {% else %}
-        {% if item.url %}
-            <a href="{{ item.url }}" class="nav-link">{{ item.title }}</a>
+<ul class="nav sidenav-nav">
+    {% for item in menu_items %}
+    <li class="nav-item">
+        {% if item.is_header %}
+            <span class="nav-group-label">{{ item.title }}</span>
         {% else %}
-            <div class="nav-link">{{ item.title }}</div>
+            {% if item.url %}
+                <a href="{{ item.url }}" class="nav-link">{{ item.title }}</a>
+            {% else %}
+                <div class="nav-link">{{ item.title }}</div>
+            {% endif %}
         {% endif %}
+
+        {% if item.button_add %}
+            {{ item.button_add }}
         {% endif %}
-    
-    {% if item.button_add %}
-        {{ item.button_add }}
-    {% endif %}
-</li>
-{% endfor %}
+    </li>
+    {% endfor %}
+</ul>

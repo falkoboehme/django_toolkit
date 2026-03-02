@@ -43,8 +43,11 @@
             {% include 'django_toolkit/base/header.html' with user=user %}
           </div>
 
-          <section class="dtk-content">
+          <section class="dtk-content-header-area">
             {% block content-header %}{% endblock %}
+          </section>
+
+          <section class="dtk-content">
             {% block content %}{% endblock %}
           </section>
 

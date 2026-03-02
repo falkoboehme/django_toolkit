@@ -1,16 +1,18 @@
 :root {
-    --dtk-sidebar-bg: #f4f5f8;
-    --dtk-sidebar-border: #dbe0e8;
-    --dtk-sidebar-text: #374151;
-    --dtk-sidebar-muted: #6b7280;
-    --dtk-sidebar-hover: #eef2f7;
-    --dtk-sidebar-active: #0d6efd;
-    --dtk-surface: #f3f7ff;
+    --dtk-sidebar-bg: #d8d8d8;
+    --dtk-sidebar-border: #d3dae3;
+    --dtk-sidebar-text: #1f2a37;
+    --dtk-sidebar-muted: #5f6b7a;
+    --dtk-sidebar-hover: #dde7f3;
+    --dtk-sidebar-active: #8cb3dc;
+    --dtk-sidebar-resize: #969696;
+    --dtk-surface: #f2f4f7;
     --dtk-surface-card: #ffffff;
-    --dtk-border: #dbe0e8;
-    --dtk-border-strong: #c9d2de;
+    --dtk-border: #d3dae3;
+    --dtk-border-strong: #c4cedb;
+    --dtk-border-header: #9b9b9b;
     --dtk-text: #1f2937;
-    --dtk-muted: #6b7280;
+    --dtk-muted: #5f6b7a;
     --dtk-sidebar-width: 220px;
 }
 
@@ -32,26 +34,27 @@ body.dtk-app {
 
 .sidenav {
     background-color: var(--dtk-sidebar-bg);
-    border-right: 1px solid var(--dtk-sidebar-border);
-    padding: 1rem 0;
+    border-right: 0;
+    padding: .75rem 0;
     overflow: hidden;
 }
 
 .dtk-sidenav-resize {
-    width: 6px;
+    width: 1px;
     cursor: col-resize;
     background-color: transparent;
     position: relative;
+    background-color: var(--dtk-sidebar-resize);
 }
 
 .dtk-sidenav-resize::before {
     content: '';
     position: absolute;
-    left: 2px;
+    left: 1px;
     top: 0;
     bottom: 0;
-    width: 2px;
-    background-color: var(--dtk-border);
+    width: 1px;
+    background-color: var(--dtk-sidebar-resize);
 }
 
 .dtk-sidenav-resize:hover::before,
@@ -99,10 +102,9 @@ body.dtk-app {
     font-size: .875rem;
     font-weight: 500;
     color: var(--dtk-sidebar-text);
-    padding: .4rem .5rem .4rem 1rem;
-    margin: 0;
-    border-top-right-radius: .375rem;
-    border-bottom-right-radius: .375rem;
+    padding: .42rem .6rem;
+    margin: .05rem .5rem;
+    border-radius: .35rem;
 }
 
 .sidenav .nav-link:hover,
@@ -113,7 +115,7 @@ body.dtk-app {
 
 .sidenav .nav-link.active {
     background-color: var(--dtk-sidebar-active);
-    color: #ffffff;
+    color: #1b3652;
 }
 
 .dtk-main {
@@ -123,17 +125,18 @@ body.dtk-app {
 }
 
 .dtk-header {
-    background-color: var(--dtk-surface-card);
+    background-color: #ffffff;
     border-bottom: 1px solid var(--dtk-border);
-    height: 3.5rem;
+    height: 3.25rem;
 }
 
 .dtk-header-inner {
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     padding: 0 .85rem;
+    gap: .7rem;
 }
 
 .dtk-sidebar-toggle {
@@ -142,7 +145,33 @@ body.dtk-app {
 }
 
 .dtk-header-spacer {
+    flex: 0 0 auto;
+}
+
+.dtk-header-search-wrap {
     flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+}
+
+.dtk-top-search {
+    width: min(46rem, 100%);
+    display: flex;
+    align-items: stretch;
+}
+
+.dtk-top-search-input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.dtk-top-search-button {
+    min-width: 2.6rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .dtk-header-profile {
@@ -183,6 +212,11 @@ body.dtk-app {
 .dtk-content {
     flex: 1 1 auto;
     padding: .75rem;
+}
+
+.dtk-content-header-area {
+    background-color: #fff;
+    padding-bottom: 0.5rem;
 }
 
 .dtk-login-shell {
@@ -291,16 +325,16 @@ body.dtk-app {
 }
 
 .card {
-    border: 1px solid var(--dtk-border);
+    border: 1px var(--dtk-border);
     border-radius: .5rem;
     background-color: var(--dtk-surface-card);
-    box-shadow: 0 2px 6px rgba(17, 24, 39, 0.10), 0 16px 32px rgba(17, 24, 39, 0.10);
+    box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06), 0 6px 14px rgba(17, 24, 39, 0.06);
     margin: .75rem;
     transition: box-shadow .18s ease;
 }
 
 .card:hover {
-    box-shadow: 0 3px 8px rgba(17, 24, 39, 0.12), 0 18px 36px rgba(17, 24, 39, 0.12);
+    box-shadow: 0 2px 5px rgba(17, 24, 39, 0.08), 0 8px 18px rgba(17, 24, 39, 0.08);
 }
 
 .table-container {
@@ -348,9 +382,13 @@ table td {
 table th {
     font-size: .78rem;
     line-height: 1.25;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: .02em;
     color: var(--dtk-muted);
+}
+
+table thead th {
+    border-bottom-color: #000;
 }
 
 table td {
@@ -364,6 +402,19 @@ table th a:hover {
     text-decoration: none;
 }
 
+.dtk-content-header-shell {
+    background-color: #fff;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.dtk-page-meta,
+.dtk-page-header,
+.dtk-page-subtitle,
+.dtk-content-tabs {
+    background-color: #fff;
+}
+
 .dtk-page-meta .breadcrumb {
     margin-bottom: .25rem;
     font-size: .8rem;
@@ -373,6 +424,39 @@ table th a:hover {
     margin: 0;
     font-size: 1.3rem;
     font-weight: 600;
+}
+
+.dtk-content-tabs {
+    margin-bottom: 0;
+    margin-left: -.25rem;
+    padding-top: .25rem;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dtk-content-tabs .nav-tabs {
+    border-bottom: 1px solid var(--dtk-border-strong);
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    gap: .2rem;
+}
+
+.dtk-content-tabs .nav-tabs .nav-link {
+    margin-bottom: -1px;
+    border-bottom-color: var(--dtk-border-strong);
+    background-color: transparent;
+    font-weight: 500;
+    color: #526173;
+}
+
+.dtk-content-tabs .nav-tabs .nav-link.active,
+.dtk-content-tabs .nav-tabs .nav-item.show .nav-link {
+    font-weight: 600;
+    color: #1f3654;
+    background-color: var(--dtk-surface);
+    border-color: #b6c6da #b6c6da var(--dtk-surface);
 }
 
 .object-subtitle {
@@ -478,11 +562,13 @@ select.form-control:focus {
 
 .dtk-attr-card {
     margin: .35rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
 }
 
 .dtk-card-header {
     background-color: #f8fafc;
-    border-bottom: 1px solid var(--dtk-border);
+    border-bottom: 1px solid var(--dtk-border-header);
     padding: .55rem .75rem;
 }
 
@@ -512,8 +598,7 @@ select.form-control:focus {
     width: 34%;
     color: var(--dtk-muted);
     font-size: .83rem;
-    font-weight: 600;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: .02em;
 }
 

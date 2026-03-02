@@ -6,13 +6,13 @@
         <div class="col col-md-{{ 12|divide:card_column_count }} dtk-card-col">
             {% for card in card_col %}
                 {% if card.is_placeholder %}
-                    <div class="card dtk-card-placeholder"></div>
+                    <div class="dtk-card dtk-card-placeholder"></div>
                 {% else %}
-                    <div class="card dtk-attr-card">
-                        <div class="card-header dtk-card-header">
+                    <div class="dtk-card">
+                        <div class="dtk-card-header">
                             <h5 class="dtk-card-title">{{ card.header }}</h5>
                         </div>    
-                        <div class="card-body dtk-card-body">
+                        <div class="dtk-card-body">
                             <table class="table table-hover attr-table">
                                 <tbody>
                                     {% for row in card.rows %}

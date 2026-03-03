@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
-class FastDevRouter(DefaultRouter):
+class DTRouter(DefaultRouter):
     # Extend DRF's built-in DefaultRouter to alphabetically order endpoints under the root view
 
     def get_api_root_view(self, api_urls=None):

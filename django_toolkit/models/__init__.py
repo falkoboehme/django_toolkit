@@ -5,7 +5,7 @@ from .base_models import (
     DTHistoryChangeLoggingModel,
     DTEnumModel,
     DTReadOnlyEnumModel,
-    UserBasedQueryset,
+    RequestBasedQueryset,
     get_user_based_queryset_backend,
     DTModel,
 )
@@ -23,7 +23,7 @@ __all__ = [
     'DTHistoryChangeLoggingModel',
     'DTEnumModel',
     'DTReadOnlyEnumModel',
-    'UserBasedQueryset',
+    'RequestBasedQueryset',
     'get_user_based_queryset_backend',
     'DTGroup',
     'DTUser',

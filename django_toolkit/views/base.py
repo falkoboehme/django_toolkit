@@ -63,9 +63,9 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
     
 
     def get_queryset(self):
-        for_user = getattr(self.model, 'for_user', None)
-        if callable(for_user):
-            return for_user(self.request.user)
+        for_request = getattr(self.model, 'for_request', None)
+        if callable(for_request):
+            return for_request(self.request)
         queryset = self.model._default_manager.all()
         backend = get_user_based_queryset_backend()
-        return backend.filter_queryset(queryset=queryset, user=self.request.user)
+        return backend.filter_queryset(queryset=queryset, request=self.request)

@@ -11,19 +11,25 @@ from ..mixins.model_change_logging import DTModelChangeLoggingMixin
 import logging
 log = logging.getLogger("toolkit")
 
-class UserBasedQueryset:
+class RequestBasedQueryset:
     """
     Central queryset filter dispatcher based on model key `app_model`.
-    Define methods like `training_sportmodel(self, queryset, user)`.
+    Define methods like `training_sportmodel(self, queryset, request)`.
     """
 
-    def filter_queryset(self, queryset, user=None) -> models.QuerySet:
+    def filter_queryset(self, queryset, request=None) -> models.QuerySet:
         model = queryset.model
         method_name = f"{model._meta.app_label}_{model._meta.model_name}"
         model_filter = getattr(self, method_name, None)
 
         if callable(model_filter):
-            return cast(models.QuerySet, model_filter(queryset=queryset, user=user))
+            try:
+                return cast(models.QuerySet, model_filter(queryset=queryset, request=request))
+            except TypeError as exc:
+                if "unexpected keyword argument 'request'" not in str(exc):
+                    raise
+                user = getattr(request, "user", None)
+                return cast(models.QuerySet, model_filter(queryset=queryset, user=user))
 
         return self._fallback_queryset(queryset)
 
@@ -36,10 +42,10 @@ class UserBasedQueryset:
         return queryset
 
 
-def get_user_based_queryset_backend() -> UserBasedQueryset:
+def get_user_based_queryset_backend() -> RequestBasedQueryset:
     backend_path = getattr(settings, 'DT_USER_BASED_QUERYSET_CLASS', None)
     if not backend_path:
-        return UserBasedQueryset()
+        return RequestBasedQueryset()
 
     backend_cls = import_string(backend_path)
     return backend_cls()
@@ -95,11 +101,11 @@ class DTBaseModel(models.Model):
 
     
     @classmethod
-    def for_user(cls, user):
-        """Return queryset filtered for a specific user based on the UserBasedQueryset backend."""
+    def for_request(cls, request):
+        """Return queryset filtered for a specific request based on the RequestBasedQueryset backend."""
         queryset = cls._default_manager.all()
         backend = get_user_based_queryset_backend()
-        return backend.filter_queryset(queryset=queryset, user=user)
+        return backend.filter_queryset(queryset=queryset, request=request)
 
 
 class DTReadOnlyModel(DTBaseModel):

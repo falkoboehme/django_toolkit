@@ -84,7 +84,7 @@ class BaseSerializer(serializers.HyperlinkedModelSerializer, serializers.ModelSe
 
 
 
-class APISerializer(ManyToManyWriteSerializerMixin, ChangeLoggingSerializerMixin, BaseSerializer):
+class DTAPISerializer(ManyToManyWriteSerializerMixin, ChangeLoggingSerializerMixin, BaseSerializer):
     """
     Default serializer, supports:
     - write operations for many-to-many relations
@@ -93,7 +93,7 @@ class APISerializer(ManyToManyWriteSerializerMixin, ChangeLoggingSerializerMixin
 
 
 
-class WritableNestedAPISerializer(BaseSerializer):
+class DTAPINestedSerializer(BaseSerializer):
     """
     Represents an object related through a ForeignKey field. On write, it accepts a primary key (PK) value or a
     dictionary of attributes which can be used to uniquely identify the related object. This class should be

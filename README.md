@@ -23,7 +23,7 @@ import django_toolkit
 # Beispielverwendung hier
 ```
 
-### UserBasedQueryset (explizit)
+### RequestBasedQueryset (explizit)
 
 Du kannst zentrale, benutzerabhängige Filterregeln pro Modell definieren.
 Die Methodennamen folgen dem Schema `app_model` (z. B. `training_sportmodel`).
@@ -31,12 +31,12 @@ Die Methodennamen folgen dem Schema `app_model` (z. B. `training_sportmodel`).
 1. Eigene Filterklasse anlegen:
 
 ```python
-from django_toolkit.models import UserBasedQueryset
+from django_toolkit.models import RequestBasedQueryset
 
 
-class ProjectUserBasedQueryset(UserBasedQueryset):
-    def training_sportmodel(self, queryset, user):
-        if user and user.is_superuser:
+class ProjectRequestBasedQueryset(RequestBasedQueryset):
+    def training_sportmodel(self, queryset, request):
+        if request and request.user and request.user.is_superuser:
             return queryset
         return queryset.none()
 ```
@@ -44,14 +44,14 @@ class ProjectUserBasedQueryset(UserBasedQueryset):
 2. In `settings.py` konfigurieren:
 
 ```python
-DT_USER_BASED_QUERYSET_CLASS = "training_planner.user_based_queryset.ProjectUserBasedQueryset"
+DT_USER_BASED_QUERYSET_CLASS = "training_planner.user_based_queryset.ProjectRequestBasedQueryset"
 DT_USER_BASED_QUERYSET_DEFAULT = "all"  # "all" oder "empty"
 ```
 
 3. Bei Bedarf explizit anwenden:
 
 ```python
-queryset = Sport.for_user(request.user)
+queryset = Sport.for_request(request)
 ```
 
 Standardzugriffe über `Model.objects...` bleiben unverändert (z. B. im Admin).
@@ -63,13 +63,13 @@ class SportListView(DTListView):
     model = Sport
 
     def get_queryset(self):
-        return Sport.for_user(self.request.user)
+    return Sport.for_request(self.request)
 ```
 
 Beispiel für ein einzelnes Objekt mit User-Filter:
 
 ```python
-sport = Sport.for_user(request.user).get(pk=pk)
+sport = Sport.for_request(request).get(pk=pk)
 ```
 
 ### Logging (Loggername: toolkit)

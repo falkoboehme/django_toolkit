@@ -24,7 +24,7 @@ class SettingsCreatorMixin:
         "DT_AUTO_CREATE_VIEWS = config('DT_AUTO_CREATE_VIEWS', default=False, cast=bool)",
         "DT_AUTO_CREATE_MENU = config('DT_AUTO_CREATE_MENU', default=False, cast=bool)",
         "DT_AUTO_CREATE_ADMIN_AREA = config('DT_AUTO_CREATE_ADMIN_AREA', default=False, cast=bool)",
-        f"DT_USER_BASED_QUERYSET_CLASS = config('DT_USER_BASED_QUERYSET_CLASS', default='{project_name}.user_based_queryset.ProjectUserBasedQueryset', cast=str)",
+        f"DT_USER_BASED_QUERYSET_CLASS = config('DT_USER_BASED_QUERYSET_CLASS', default='{project_name}.user_based_queryset.ProjectRequestBasedQueryset', cast=str)",
         "DT_USER_BASED_QUERYSET_DEFAULT = config('DT_USER_BASED_QUERYSET_DEFAULT', default='none', cast=str)",
         "DT_DISPLAY_NONE = config('DT_DISPLAY_NONE', default='—', cast=str)",
         "DT_ITEMS_PER_PAGE_MAX = config('DT_ITEMS_PER_PAGE_MAX', default=100, cast=int)",
@@ -65,8 +65,6 @@ class SettingsCreatorMixin:
             file_path=self.settings_path,
             anchor=self.dt_settings_end_anchor,
             lines_to_insert=[
-                "",
-                "",
                 "if DEBUG:",
                 "    # Add django_toolkit to path for direct development (no reinstall needed)",
                 "    DJANGO_TOOLKIT_PATH = BASE_DIR.parent / 'django_toolkit'",
@@ -84,7 +82,6 @@ class SettingsCreatorMixin:
             file_path=self.settings_path,
             anchor=self.dt_settings_end_anchor,
             lines_to_insert=[
-                "",
                 "LOGGING = {",
                 "    'version': 1,",
                 "    'disable_existing_loggers': False,",
@@ -113,6 +110,7 @@ class SettingsCreatorMixin:
                 "            'handlers': ['console'],",
                 "            'level': 'INFO',",
                 "        },",
+                "    },",
                 "}",
             ],
             position="before",

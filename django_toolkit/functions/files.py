@@ -52,7 +52,7 @@ def insert_line_in_file(
     content = file_path.read_text(encoding="utf-8")
 
     string_to_check = check_string if check_string is not None else line_to_insert
-    if string_to_check in content:
+    if string_to_check != "" and string_to_check in content:
         return False
 
     # Check if anchor exists
@@ -191,8 +191,12 @@ def create_file(
     file_path = Path(file_path)
 
     # Check if file exists
-    if file_path.exists() and not overwrite:
-        return False
+    if file_path.exists():
+        if not overwrite:
+            return False
+        existing_content = file_path.read_text(encoding="utf-8")
+        if existing_content == content:
+            return False
 
     # Create parent directories if needed
     if create_dirs and not file_path.parent.exists():

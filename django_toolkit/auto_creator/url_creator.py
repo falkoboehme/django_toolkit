@@ -15,7 +15,7 @@ class URLCreatorMixin:
     project_name: str = ""
 
     def _auto_create_project_urls(self) -> set:
-        """Auto-sync URLs for all registered models. Returns list of modified files."""
+        """Auto-create URLs for all registered models. Returns list of modified files."""
         files = set()
         project_urls_path = f"{self.project_name}/urls.py"
 
@@ -27,7 +27,7 @@ class URLCreatorMixin:
         file = insert_lines_in_file(
             file_path=project_urls_path,
             anchor="from django.urls import path",
-            lines_to_insert=import_lines,
+            lines_to_insert=import_lines,   
             position="after",
         )
         files.add(file) if file else None

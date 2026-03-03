@@ -12,16 +12,18 @@ from rest_framework import viewsets, pagination
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
+
 from .filtersets import RelatedOrderingFilter, FilterSetFactory
 from .metadata import Metadata
 from ..functions.models import get_user_apps_with_models
-from ..functions.restrict_queryset import restrict_queryset_for_user
-from ..mixins.check_permissions import *
+# from ..functions.restrict_queryset import restrict_queryset_for_user
+from .mixins.check_permission import CheckPermissionMixin
 
-log = logging.getLogger("fast_dev")
+
+log = logging.getLogger("toolkit")
 
 class TokenAuthView(TokenObtainPairView):
-    _serializer_class = "django_fast_dev.api.serializers.APITokenAuthSerializer"
+    _serializer_class = "django_toolkit.api.serializers.APITokenAuthSerializer"
 
 
 class DocsView(APIView):
@@ -75,7 +77,7 @@ class APIPagination(pagination.PageNumberPagination):
     Pagination Class für API
     Default-PageSize is set in settings.py
     """
-    max_page_size = settings.DJANGO_FAST_DEV_MAX_PAGE_SIZE
+    max_page_size = settings.DT_ITEMS_PER_PAGE_MAX
     page_size_query_param = 'page_size'
     page_query_param = 'page'
 
@@ -88,21 +90,17 @@ class APIListPaginatior(Paginator):
         top = bottom + self.per_page
         if top + self.orphans >= self.count:
             top = self.count
-        object_dict = {k: self.object_list[k] for k in sorted(self.object_list.keys())[bottom:top]}
+        object_dict = {k: self.object_list[k] for k in sorted(self.object_list.keys())[bottom:top]}     # type: ignore
         object_list = [object_dict]
-        return self._get_page(object_list, number, self)
+        return self._get_page(object_list, number, self)    # type: ignore
+
 
 class APIListPagination(APIPagination):
     django_paginator_class = APIListPaginatior
 
 
 
-class APIViewSet(
-    CheckViewPermissionViewSetMixin,
-    CheckCreatePermissionViewSetMixin,
-    CheckChangePermissionViewSetMixin,
-    CheckDeletePermissionViewSetMixin,
-    viewsets.ModelViewSet):
+class DTAPIViewSet(CheckPermissionMixin, viewsets.ModelViewSet):
     """
     Base Viewset including CheckPermissionMixin to check if the user has the rerquired rights
 
@@ -132,11 +130,12 @@ class APIViewSet(
             additional_filters=self.additional_filters,
         )
         # return self.model.objects.restrict(self.request.user)
-        return restrict_queryset_for_user(queryset=self.model.objects.all(), user=self.request.user)
+        #return restrict_queryset_for_user(queryset=self.model.objects.all(), user=self.request.user)
+        return self.model.objects.for_request(self.request)
 
 
 
-class ReadOnlyAPIViewSet(CheckViewPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet):
+class DTReadOnlyAPIViewSet(CheckPermissionMixin, viewsets.ReadOnlyModelViewSet):
     """
     Read only Viewset
     """
@@ -159,4 +158,5 @@ class ReadOnlyAPIViewSet(CheckViewPermissionViewSetMixin, viewsets.ReadOnlyModel
             additional_filters=self.additional_filters,
         )
         # return self.model.objects.restrict(self.request.user)
-        return restrict_queryset_for_user(queryset=self.model.objects.all(), user=self.request.user)
+        #return restrict_queryset_for_user(queryset=self.model.objects.all(), user=self.request.user)
+        return self.model.objects.for_request(self.request)

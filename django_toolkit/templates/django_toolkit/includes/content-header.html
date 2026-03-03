@@ -1,7 +1,7 @@
-{% load i18n %}
+﻿{% load i18n %}
 
-<div class="dtk-content-header-shell">
-<div class="d-flex justify-content-between align-items-center px-3 pt-3 dtk-page-meta">
+<div class="dt-content-header-shell">
+<div class="d-flex justify-content-between align-items-center px-3 pt-3 dt-page-meta">
     <nav class="breadcrumb-container" aria-label="breadcrumb">
         {% if breadcrumbs %}
         <ol class="breadcrumb" aria-label="breadcrumbs">
@@ -18,7 +18,7 @@
         {% endif %}
     </div>
 </div>
-<div class="d-flex justify-content-between align-items-center px-3 dtk-page-header">
+<div class="d-flex justify-content-between align-items-center px-3 dt-page-header">
     <div class="col col-8">
         <h3>{{ content_title }}</h3>
     </div>
@@ -30,7 +30,7 @@
 </div>
 
 {% if content_subtitle %}
-<div class="d-flex justify-content-between align-items-center px-3 dtk-page-subtitle">
+<div class="d-flex justify-content-between align-items-center px-3 dt-page-subtitle">
     <div class="object-subtitle">
         {{ content_subtitle }}
     </div>
@@ -38,7 +38,7 @@
 {% endif %}
 
 {% if content_tabs and content_tabs|length > 1 %}
-<div class="pt-2 dtk-content-tabs">
+<div class="pt-2 dt-content-tabs">
     <ul class="nav nav-tabs" role="tablist">
         {% for tab in content_tabs %}
         <li class="nav-item" role="presentation">
@@ -65,7 +65,7 @@
     </ul>
 </div>
 {% elif active_tab and filter_fields %}
-<div class="pt-2 dtk-content-tabs">
+<div class="pt-2 dt-content-tabs">
     <ul class="nav nav-tabs" id="listViewTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link{% if active_tab == 'results' %} active{% endif %}" id="results-tab" data-bs-toggle="tab" data-bs-target="#results-panel" type="button" role="tab" aria-controls="results-panel" aria-selected="{% if active_tab == 'results' %}true{% else %}false{% endif %}">
@@ -82,4 +82,5 @@
 {% endif %}
 
 </div>
+
 

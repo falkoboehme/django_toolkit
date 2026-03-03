@@ -1,4 +1,4 @@
-{% extends 'django_toolkit/base/layout.html' %}
+﻿{% extends 'django_toolkit/base/layout.html' %}
 
 
 {% block content-header %}
@@ -11,7 +11,7 @@
     {% csrf_token %}
     {% include 'django_toolkit/includes/cards.html' %}
 
-    <div class="row dtk-form-actions">
+    <div class="row dt-form-actions">
         <div class="col col-12 col-xl-6"></div>
         <div class="col col-12 col-xl-6">
             {% for button in form_buttons %}
@@ -21,3 +21,4 @@
     </div>
 </form>
 {% endblock %}
+

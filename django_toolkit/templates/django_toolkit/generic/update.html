@@ -1,4 +1,4 @@
-{% extends 'django_toolkit/base/layout.html' %}
+﻿{% extends 'django_toolkit/base/layout.html' %}
 
 
 {% block content-header %}
@@ -16,7 +16,7 @@
         {# % include 'forms/paragraph.html' with field=field % #}
     {# % endfor % #}
     
-    <div class="row dtk-form-actions">
+    <div class="row dt-form-actions">
         <div class="col col-12 col-xl-6"></div>
         <div class="col col-12 col-xl-6">
             {% for button in form_buttons %}
@@ -26,3 +26,4 @@
     </div>
 </form>
 {% endblock %}
+

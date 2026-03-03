@@ -1,13 +1,13 @@
-{% extends 'django_toolkit/base/layout.html' %}
+﻿{% extends 'django_toolkit/base/layout.html' %}
 
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="dtk-login-shell">
+<div class="dt-login-shell">
     <div class="row justify-content-center">
         <div class="col-12 col-md-8 col-lg-5 col-xl-4">
-            <form class="dtk-login-card" method="post">
-                <h1 class="dtk-login-title">Login</h1>
+            <form class="dt-login-card" method="post">
+                <h1 class="dt-login-title">Login</h1>
                 {% csrf_token %}
                 {{ form.as_p }}
                 <button type="submit" class="btn btn-primary w-100">Login</button>

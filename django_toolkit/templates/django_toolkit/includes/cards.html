@@ -1,18 +1,18 @@
-{% load calc %}
+﻿{% load calc %}
 
-<div class="row dtk-card-grid">
+<div class="row dt-card-grid">
     {% for card_col in cards %}
         {# the number of card columns depends on the length of the card list in the model meta information #}
-        <div class="col col-md-{{ 12|divide:card_column_count }} dtk-card-col">
+        <div class="col col-md-{{ 12|divide:card_column_count }} dt-card-col">
             {% for card in card_col %}
                 {% if card.is_placeholder %}
-                    <div class="dtk-card dtk-card-placeholder"></div>
+                    <div class="dt-card dt-card-placeholder"></div>
                 {% else %}
-                    <div class="dtk-card">
-                        <div class="dtk-card-header">
-                            <h5 class="dtk-card-title">{{ card.header }}</h5>
+                    <div class="dt-card">
+                        <div class="dt-card-header">
+                            <h5 class="dt-card-title">{{ card.header }}</h5>
                         </div>    
-                        <div class="dtk-card-body">
+                        <div class="dt-card-body">
                             <table class="table table-hover attr-table">
                                 <tbody>
                                     {% for row in card.rows %}
@@ -33,4 +33,5 @@
         </div>
     {% endfor %}
 </div>
+
 

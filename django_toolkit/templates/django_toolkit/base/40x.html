@@ -1,23 +1,24 @@
-{% extends 'django_toolkit/base/layout.html' %}
+﻿{% extends 'django_toolkit/base/layout.html' %}
 {% load i18n %}
 
 {% block title %}{% endblock %}
 
 {% block content %}
-<div class="dtk-error-shell">
-    <div class="dtk-error-card card">
-        <div class="card-header dtk-error-header">
-            <div class="dtk-error-icon">
+<div class="dt-error-shell">
+    <div class="dt-error-card card">
+        <div class="card-header dt-error-header">
+            <div class="dt-error-icon">
                 {% block icon %}<i class="mdi mdi-alert-circle-outline"></i>{% endblock %}
             </div>
-            <h5 class="dtk-error-title">{% block page_title %}{% endblock %}</h5>
+            <h5 class="dt-error-title">{% block page_title %}{% endblock %}</h5>
         </div>
-        <div class="card-body dtk-error-body">
+        <div class="card-body dt-error-body">
             {% block message %}{% endblock %}
         </div>
-        <div class="card-footer text-end dtk-error-footer">
+        <div class="card-footer text-end dt-error-footer">
             <a href="{% url 'home' %}" class="btn btn-primary">{% trans "Home Page" %}</a>
         </div>
     </div>
 </div>
 {% endblock %}
+

@@ -1,4 +1,4 @@
-{# Base template for (almost) all pages #}
+﻿{# Base template for (almost) all pages #}
 {% load static %}
 
 <!doctype html>
@@ -30,24 +30,24 @@
       <title>{{ page_title }}</title>
     {% endif %}
   </head>
-  <body class="dtk-app">
-      <div class="dtk-layout" id="dtk-layout">
-        <aside class="sidenav" id="dtk-sidenav" aria-label="Sidebar navigation">
+  <body class="dt-app">
+      <div class="dt-layout" id="dt-layout">
+        <aside class="sidenav" id="dt-sidenav" aria-label="Sidebar navigation">
           {% include 'django_toolkit/base/sidebar.html' with user=user %}
         </aside>
 
-        <div class="dtk-sidenav-resize" id="dtk-sidenav-resize" role="separator" aria-orientation="vertical" aria-controls="dtk-sidenav" aria-label="Resize sidebar" tabindex="0"></div>
+        <div class="dt-sidenav-resize" id="dt-sidenav-resize" role="separator" aria-orientation="vertical" aria-controls="dt-sidenav" aria-label="Resize sidebar" tabindex="0"></div>
 
-        <main class="dtk-main">
+        <main class="dt-main">
           <div>
             {% include 'django_toolkit/base/header.html' with user=user %}
           </div>
 
-          <section class="dtk-content-header-area">
+          <section class="dt-content-header-area">
             {% block content-header %}{% endblock %}
           </section>
 
-          <section class="dtk-content">
+          <section class="dt-content">
             {% block content %}{% endblock %}
           </section>
 

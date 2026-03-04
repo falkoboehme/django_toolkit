@@ -12,10 +12,17 @@ class BothHttpAndHttpsSchemaGenerator(OpenAPISchemaGenerator):
         return schema
 
 
+# openapi_info = openapi.Info(
+#     title=settings.DJANGO_FAST_DEV_PROJECT_NAME,
+#     default_version=settings.DJANGO_FAST_DEV_PROJECT_VERSION,
+#     description=settings.DJANGO_FAST_DEV_PROJECT_DESCRIPTION,
+#     license=openapi.License(name="Apache v2 License"),
+# )
+
 openapi_info = openapi.Info(
-    title=settings.DJANGO_FAST_DEV_PROJECT_NAME,
-    default_version=settings.DJANGO_FAST_DEV_PROJECT_VERSION,
-    description=settings.DJANGO_FAST_DEV_PROJECT_DESCRIPTION,
+    title="Titel",
+    default_version="Version",
+    description="Description",
     license=openapi.License(name="Apache v2 License"),
 )
 

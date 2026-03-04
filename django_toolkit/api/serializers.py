@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.signals import user_logged_in
-from django.core.exceptions import FieldError, MultipleObjectsReturned, ObjectDoesNotExist
+from django.core.exceptions import FieldError, MultipleObjectsReturned, ObjectDoesNotExist, ImproperlyConfigured
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.state import token_backend
@@ -76,6 +76,7 @@ class BaseSerializer(serializers.HyperlinkedModelSerializer, serializers.ModelSe
     Basis Serializer
     adds fields id, url and display
     """
+    serializer_related_field = serializers.HyperlinkedRelatedField
     id = serializers.ReadOnlyField()
     display = serializers.SerializerMethodField(read_only=True)
 

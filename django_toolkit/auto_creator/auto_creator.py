@@ -21,7 +21,7 @@ from.menu_creator import MenuCreator
 
 from django_toolkit.functions.debug import *
 
-class ModelAutoCreator(
+class DTModelAutoCreator(
     SettingsCreatorMixin,
     URLCreatorMixin,
     ViewCreatorMixin,
@@ -59,7 +59,7 @@ class ModelAutoCreator(
         return model_class
     
 
-    def auto_sync(self) -> set:
+    def auto_create(self) -> set:
         """Automatically create URLs, Views, Admin, etc. for all registered models. Returns list of modified files."""
         all_files = set()
         self.project_name = get_project_name()
@@ -97,6 +97,9 @@ class ModelAutoCreator(
         
         # Auto-create project-level URLs
         all_files.update(self._auto_create_project_urls())
+
+        # Auto-create project-level API URLs
+        all_files.update(self._auto_create_project_api_urls())
 
         # Auto-create API URLs for each app
         for app_label in self._registry:

@@ -1,11 +1,11 @@
-from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied
 from rest_framework.serializers import ValidationError
 
+from ...functions.debug import *
 
 import logging
-log = logging.getLogger("auth")
+log = logging.getLogger("toolkit")
 
 
 __all__ = ['CheckPermissionMixin']
@@ -13,7 +13,10 @@ __all__ = ['CheckPermissionMixin']
 
 class CheckPermissionMixin:
     """
-    Checks if the user has the permission to perform the action
+    Check the user permissions for the model defined in the serializer_class of the viewset.
+    The permission is checked for each request method (GET, POST, PUT, PATCH, DELETE) and the
+    corresponding permission (view, add, change, delete) is checked.
+    If the user does not have the permission, a PermissionDenied exception is raised.
     """
 
     METHOD_PERMISSION_MAPPING = {
@@ -25,9 +28,14 @@ class CheckPermissionMixin:
     }
 
     def _check_perm(self, perm_list, request, model):
+        # if request.user.is_superuser:
+        #     return True
         for permission in perm_list:
+            print(permission)
             permission_app = permission.content_type.app_label
+            print(permission_app, model._meta.app_label, permission.codename)
             if permission_app == model._meta.app_label:
+                
                 if permission.codename == f"{self.METHOD_PERMISSION_MAPPING[request.method]}_{model.__name__.lower()}":
                     return True
         return False
@@ -55,22 +63,14 @@ class CheckPermissionMixin:
                 f"serializer_class of '{self.serializer_class}' not defined in check_user_model_permissions"    # type: ignore
             )
         
-        model_app = model._meta.app_label
-
-        # Is the user allowed?
-        user_permissions = Permission.objects.filter(user=request.user)
-        group_permissions = Permission.objects.filter(group__user=request.user)
-        if self._check_perm(user_permissions, request, model):
+        if self._check_perm(request.user.all_permissions, request, model):
             return True
-        if self._check_perm(group_permissions, request, model):
-            return True
-                
-        # User is not allowed, log the request
-        requested_uri = request.build_absolute_uri()
-        log.warning(f"{request.method} on {requested_uri} denied for '{request.user}'")
-        raise PermissionDenied(
-            f"You do not have permission to perform a {request.method}-request on {model_app}/{model.__name__.lower()}."
-        )
+        else:
+            requested_uri = request.build_absolute_uri()
+            log.warning(f"{request.method} on {requested_uri} denied for '{request.user}'")
+            raise PermissionDenied(
+                f"You do not have permission to perform a {request.method}-request on {requested_uri}."
+            )
 
 
     # GET (list all/multiple objects)

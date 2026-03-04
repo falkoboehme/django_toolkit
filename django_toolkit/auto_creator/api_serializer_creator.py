@@ -20,7 +20,7 @@ class APISerializerCreatorMixin:
 		init_file = create_file(
 			file_path=serializers_dir / "__init__.py",
 			content=self._get_app_serializer_init_content(app_label),
-			overwrite=True,
+			overwrite=False,
 		)
 		files.add(init_file) if init_file else None
 
@@ -28,7 +28,7 @@ class APISerializerCreatorMixin:
 			serializer_file = create_file(
 				file_path=serializers_dir / f"{model_name.lower()}_serializer.py",
 				content=self._get_model_serializer_content(model_info),
-				overwrite=True,
+				overwrite=False,
 			)
 			files.add(serializer_file) if serializer_file else None
 
@@ -59,7 +59,7 @@ class APISerializerCreatorMixin:
 			"\n"
 			"\n"
 			f"class {model_name}Serializer(DTAPISerializer):\n"
-			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{model_name.lower()}.detail')\n"
+			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{model_name.lower()}-detail')\n"
 			"\n"
 			"    class Meta(DTAPISerializer.Meta):\n"
 			f"        model = {model_name}\n"

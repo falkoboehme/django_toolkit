@@ -15,16 +15,17 @@ class SettingsCreatorMixin:
     dt_settings_lines = [
         "DT_ENVIRONMENT = str(config('DT_ENVIRONMENT', default='production', cast=str)).strip().lower()",
         "DEBUG = DT_ENVIRONMENT == 'development'",
+        "DT_LOGIN_REQUIRED = config('DT_LOGIN_REQUIRED', default=True, cast=bool)",
         "DATETIME_FORMAT = config('DT_DATETIME_FORMAT', default='Y-m-d H:i:s', cast=str)",
         "DATE_FORMAT = config('DT_DATE_FORMAT', default='Y-m-d', cast=str)",
         "TIME_FORMAT = config('DT_TIME_FORMAT', default='H:i:s', cast=str)",
         "DT_PROJECT_NAME = config('DT_PROJECT_NAME', default='My Project', cast=str)",
         "DT_PROJECT_VERSION = config('DT_PROJECT_VERSION', default='0.1', cast=str)",
-        "DT_AUTO_CREATE_API = config('DT_AUTO_CREATE_API', default=False, cast=bool)",
-        "DT_AUTO_CREATE_VIEWS = config('DT_AUTO_CREATE_VIEWS', default=False, cast=bool)",
-        "DT_AUTO_CREATE_MENU = config('DT_AUTO_CREATE_MENU', default=False, cast=bool)",
-        "DT_AUTO_CREATE_ADMIN_AREA = config('DT_AUTO_CREATE_ADMIN_AREA', default=False, cast=bool)",
-        f"DT_USER_BASED_QUERYSET_CLASS = config('DT_USER_BASED_QUERYSET_CLASS', default='{project_name}.user_based_queryset.ProjectRequestBasedQueryset', cast=str)",
+        "DT_AUTO_CREATE_API = DT_ENVIRONMENT == 'development' and config('DT_AUTO_CREATE_API', default=True, cast=bool)",
+        "DT_AUTO_CREATE_VIEWS = DT_ENVIRONMENT == 'development' and config('DT_AUTO_CREATE_VIEWS', default=True, cast=bool)",
+        "DT_AUTO_CREATE_MENU = DT_ENVIRONMENT == 'development' and config('DT_AUTO_CREATE_MENU', default=True, cast=bool)",
+        "DT_AUTO_CREATE_ADMIN_AREA = DT_ENVIRONMENT == 'development' and config('DT_AUTO_CREATE_ADMIN_AREA', default=True, cast=bool)",
+        f"DT_USER_BASED_QUERYSET_CLASS = config('DT_USER_BASED_QUERYSET_CLASS', default='{project_name}.request_based_queryset.ProjectRequestBasedQueryset', cast=str)",
         "DT_USER_BASED_QUERYSET_DEFAULT = config('DT_USER_BASED_QUERYSET_DEFAULT', default='none', cast=str)",
         "DT_DISPLAY_NONE = config('DT_DISPLAY_NONE', default='—', cast=str)",
         "DT_ITEMS_PER_PAGE_MAX = config('DT_ITEMS_PER_PAGE_MAX', default=100, cast=int)",
@@ -36,6 +37,25 @@ class SettingsCreatorMixin:
     def _auto_create_stettings(self) -> set:
         """Auto-sync settings. Returns list of modified files."""
         files = set()
+
+        # Ensure required imports for toolkit development mode block
+        file = insert_line_in_file(
+            file_path=self.settings_path,
+            anchor="from pathlib import Path",
+            line_to_insert="import os",
+            position="after",
+            check_string="import os",
+        )
+        files.add(file) if file else None
+
+        file = insert_line_in_file(
+            file_path=self.settings_path,
+            anchor="from pathlib import Path",
+            line_to_insert="import sys",
+            position="after",
+            check_string="import sys",
+        )
+        files.add(file) if file else None
         
         # Add Header
         file = insert_lines_in_file(
@@ -70,7 +90,8 @@ class SettingsCreatorMixin:
                 "    DJANGO_TOOLKIT_PATH = BASE_DIR.parent / 'django_toolkit'",
                 "    if DJANGO_TOOLKIT_PATH.exists():",
                 "        sys.path.insert(0, str(DJANGO_TOOLKIT_PATH))",
-                "        print(f'Using local django_toolkit from: {DJANGO_TOOLKIT_PATH}')",
+                "        if os.environ.get('RUN_MAIN') == 'true':",
+                "            print(f'Using local django_toolkit from: {DJANGO_TOOLKIT_PATH}')",
             ],
             position="before",
             check_as_block=True,

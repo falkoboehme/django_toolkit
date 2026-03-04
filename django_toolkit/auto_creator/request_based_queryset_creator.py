@@ -30,10 +30,10 @@ class RequestBasedQuerysetCreatorMixin:
         create_file(
             file_path=app_file_path,
             content=(
-                "from django_toolkit.models import RequestBasedQueryset\n"
+                "from django_toolkit.models import DTRequestBasedQueryset\n"
                 "\n"
                 "\n"
-                f"class {app_class_name}(RequestBasedQueryset):\n"
+                f"class {app_class_name}(DTRequestBasedQueryset):\n"
                 "    pass\n"
             ),
         )
@@ -63,11 +63,12 @@ class RequestBasedQuerysetCreatorMixin:
             return path.as_posix()
         return False
 
+    
     def _auto_create_project_request_based_queryset(self, app_class_names: list[str]):
         project_file_path = f"{self.project_name}/request_based_queryset.py"
         imports = "\n".join(
             [
-                "from django_toolkit.models import RequestBasedQueryset",
+                "from django_toolkit.models import DTRequestBasedQueryset",
                 *[
                     f"from {app_label}.request_based_queryset import {self._get_app_queryset_class_name(app_label)}"
                     for app_label in sorted(self._registry.keys())
@@ -75,7 +76,7 @@ class RequestBasedQuerysetCreatorMixin:
             ]
         )
 
-        inheritance = ",\n        ".join(app_class_names + ["RequestBasedQueryset"])
+        inheritance = ",\n        ".join(app_class_names + ["DTRequestBasedQueryset"])
         content = (
             f"{imports}\n"
             f"\n"
@@ -107,14 +108,14 @@ class RequestBasedQuerysetCreatorMixin:
 
     @staticmethod
     def _ensure_app_class(content: str, class_name: str) -> str:
-        class_signature = f"class {class_name}(RequestBasedQueryset):"
+        class_signature = f"class {class_name}(DTRequestBasedQueryset):"
         if class_signature in content:
             return content
 
         return (
             content.rstrip()
             + "\n\n\n"
-            + f"class {class_name}(RequestBasedQueryset):\n"
+            + f"class {class_name}(DTRequestBasedQueryset):\n"
             + "    pass\n"
         )
 
@@ -126,11 +127,11 @@ class RequestBasedQuerysetCreatorMixin:
     
     @staticmethod
     def _insert_method_into_app_class(content: str, class_name: str, method_name: str) -> str:
-        class_anchor = f"class {class_name}(RequestBasedQueryset):\n"
+        class_anchor = f"class {class_name}(DTRequestBasedQueryset):\n"
         method_block = (
             f"\n"
             f"    def {method_name}(self, queryset, request):\n"
-            f"        return self._fallback_queryset(queryset)\n"
+            f"        pass\n"
         )
 
         if class_anchor not in content:

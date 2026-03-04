@@ -65,7 +65,7 @@ class APINestedSerializerCreatorMixin:
 			"\n"
 			"\n"
 			f"class Nested{model_name}Serializer(DTAPINestedSerializer):\n"
-			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{model_name.lower()}.detail')\n"
+			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{model_name.lower()}-detail')\n"
 			"\n"
 			"    class Meta:\n"
 			f"        model = {model_name}\n"

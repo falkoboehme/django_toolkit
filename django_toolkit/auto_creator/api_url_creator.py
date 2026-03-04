@@ -29,6 +29,40 @@ class APIURLCreatorMixin:
         )
         files.add(file) if file else None
 
+        api_import_lines = [
+            "from django_toolkit.api.views import APIRootView, DocsView, TokenAuthView",
+            "from django_toolkit.api.swagger import schema_view",
+            "from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView",
+        ]
+        file = insert_lines_in_file(
+            file_path=project_urls_path,
+            anchor="from django_toolkit.views import HomeView, UserLoginView, UserLogoutView",
+            lines_to_insert=api_import_lines,
+            position="after",
+        )
+        files.add(file) if file else None
+
+        # Insert API basics + docs routes
+        api_basics_lines = [
+            f"    {get_comment_header('API Basics')}",
+            "    path('api/', APIRootView.as_view(), name='api-root'),",
+            "    path('api/docs/', DocsView.as_view(), name='api-docs'),",
+            "    path('api/token/', TokenAuthView.as_view(), name='token-obtain-pair'),",
+            f"    {get_comment_header('API Swagger v2')}",
+            "    path('api/docs/swagger-v2/', schema_view.with_ui('swagger', cache_timeout=86400), name='api-swagger-v2'),",
+            f"    {get_comment_header('API Swagger v3')}",
+            "    path('api/docs/swagger-v3/', SpectacularSwaggerView.as_view(url_name='api-swagger-v3-download'), name='api-swagger-v3'),",
+            "    path('api/docs/swagger-v3/download/', SpectacularAPIView.as_view(), name='api-swagger-v3-download'),",
+            "    path('api/docs/swagger-v3/redoc/', SpectacularRedocView.as_view(url_name='api-swagger-v3-download'), name='api-swagger-v3-redoc'),",
+        ]
+        file = insert_lines_in_file(
+            file_path=project_urls_path,
+            anchor="urlpatterns = [",
+            lines_to_insert=api_basics_lines,
+            check_as_block=True,
+        )
+        files.add(file) if file else None
+
         # Insert app URL includes
         for app_label, models in self._registry.items():
             include_line = f"    path('api/{app_label}/', include('{app_label}.api.urls'))," 

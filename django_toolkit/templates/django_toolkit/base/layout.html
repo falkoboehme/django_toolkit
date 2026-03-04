@@ -1,4 +1,4 @@
-﻿{# Base template for (almost) all pages #}
+{# Base template for (almost) all pages #}
 {% load static %}
 
 <!doctype html>
@@ -39,9 +39,7 @@
         <div class="dt-sidenav-resize" id="dt-sidenav-resize" role="separator" aria-orientation="vertical" aria-controls="dt-sidenav" aria-label="Resize sidebar" tabindex="0"></div>
 
         <main class="dt-main">
-          <div>
-            {% include 'django_toolkit/base/header.html' with user=user %}
-          </div>
+          <div>{% include 'django_toolkit/base/header.html' with user=user %}</div>
 
           <section class="dt-content-header-area">
             {% block content-header %}{% endblock %}

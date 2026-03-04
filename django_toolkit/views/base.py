@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
-from ..models.base_models import DTBaseModel, get_user_based_queryset_backend
+from ..models.base_models import DTBaseModel
 from ..mixins.dt_context import DTContextMixin
 from ..template_context.card_definition import CardDefinition
 from ..template_context.card_template import CardTemplate
@@ -63,9 +63,4 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
     
 
     def get_queryset(self):
-        for_request = getattr(self.model, 'for_request', None)
-        if callable(for_request):
-            return for_request(self.request)
-        queryset = self.model._default_manager.all()
-        backend = get_user_based_queryset_backend()
-        return backend.filter_queryset(queryset=queryset, request=self.request)
+        return self.model._default_manager.for_request(self.request)

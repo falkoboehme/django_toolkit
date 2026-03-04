@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import options
 from django.db import models
 from django.conf import settings
@@ -11,44 +12,87 @@ from ..mixins.model_change_logging import DTModelChangeLoggingMixin
 import logging
 log = logging.getLogger("toolkit")
 
-class RequestBasedQueryset:
+class DTRequestBasedQueryset:
     """
     Central queryset filter dispatcher based on model key `app_model`.
     Define methods like `training_sportmodel(self, queryset, request)`.
     """
 
+    _LOGGED_WARNINGS_ATTR = "_dt_request_based_queryset_logged_warnings"
+
+    @classmethod
+    def _warning_once_per_request(cls, request, key: str, message: str):
+        if request is None:
+            log.warning(message)
+            return
+
+        logged_warnings = getattr(request, cls._LOGGED_WARNINGS_ATTR, None)
+        if logged_warnings is None:
+            logged_warnings = set()
+            setattr(request, cls._LOGGED_WARNINGS_ATTR, logged_warnings)
+
+        if key in logged_warnings:
+            return
+
+        logged_warnings.add(key)
+        log.warning(message)
+
+    
     def filter_queryset(self, queryset, request=None) -> models.QuerySet:
         model = queryset.model
         method_name = f"{model._meta.app_label}_{model._meta.model_name}"
         model_filter = getattr(self, method_name, None)
 
+        fallback = settings.DT_USER_BASED_QUERYSET_DEFAULT.lower()
+        if fallback in ['empty', 'none']:
+            _fallback_queryset = queryset.none()
+        elif fallback in ['all', 'default']:
+            _fallback_queryset = queryset
+        else:
+            log.error(f"Invalid fallback setting for user-based queryset: '{fallback}'. Using 'none' as fallback.")
+            _fallback_queryset = queryset.none()
+
         if callable(model_filter):
             try:
-                return cast(models.QuerySet, model_filter(queryset=queryset, request=request))
+                filter_result = cast(models.QuerySet, model_filter(queryset=queryset, request=request))
             except TypeError as exc:
                 if "unexpected keyword argument 'request'" not in str(exc):
                     raise
                 user = getattr(request, "user", None)
-                return cast(models.QuerySet, model_filter(queryset=queryset, user=user))
+                filter_result = cast(models.QuerySet, model_filter(queryset=queryset, user=user))
+            if filter_result is None:
+                self._warning_once_per_request(
+                    request=request,
+                    key=f"returned_none:{method_name}:{queryset.model._meta.label}:{fallback}",
+                    message=f"Filter method '{method_name}' returned None for model {queryset.model._meta.label}. Using fallback queryset: {fallback}.",
+                )
+                filter_result = _fallback_queryset
+            return filter_result
+        self._warning_once_per_request(
+            request=request,
+            key=f"missing_method:{method_name}:{queryset.model._meta.label}:{fallback}",
+            message=f"No filter method '{method_name}' found for model {queryset.model._meta.label}. Using fallback queryset: {fallback}.",
+        )
+        return _fallback_queryset
 
-        return self._fallback_queryset(queryset)
-
-    def _fallback_queryset(self, queryset) -> models.QuerySet:
-        fallback = str(getattr(settings, 'DT_USER_BASED_QUERYSET_DEFAULT', 'none')).lower()
-        if fallback in {'empty', 'none'}:
-            log.warning(f"Using fallback queryset for model {queryset.model._meta.label}: none")
-            return queryset.none()
-        log.warning(f"Using fallback queryset for model {queryset.model._meta.label}: all")
-        return queryset
 
 
-def get_user_based_queryset_backend() -> RequestBasedQueryset:
-    backend_path = getattr(settings, 'DT_USER_BASED_QUERYSET_CLASS', None)
-    if not backend_path:
-        return RequestBasedQueryset()
+class DTModelManager(models.Manager):
+    def for_request(self, request):
+        queryset = self.get_queryset()
+        backend = self._get_request_based_queryset_backend()
+        return backend.filter_queryset(queryset=queryset, request=request)
+    
 
-    backend_cls = import_string(backend_path)
-    return backend_cls()
+    @staticmethod
+    def _get_request_based_queryset_backend() -> DTRequestBasedQueryset:
+        backend_path = getattr(settings, 'DT_USER_BASED_QUERYSET_CLASS', None)
+        if not backend_path:
+            return DTRequestBasedQueryset()
+
+        backend_cls = import_string(backend_path)
+        return backend_cls()
+
 
 
 class DTBaseModel(models.Model):
@@ -91,6 +135,8 @@ class DTBaseModel(models.Model):
         abstract = True
         history = False
         read_only = False
+
+    objects = DTModelManager()
     
 
     def get_absolute_url(self):
@@ -100,14 +146,6 @@ class DTBaseModel(models.Model):
         return reverse(url_name, args=[self.pk])
 
     
-    @classmethod
-    def for_request(cls, request):
-        """Return queryset filtered for a specific request based on the RequestBasedQueryset backend."""
-        queryset = cls._default_manager.all()
-        backend = get_user_based_queryset_backend()
-        return backend.filter_queryset(queryset=queryset, request=request)
-
-
 class DTReadOnlyModel(DTBaseModel):
     """
     Base model for read only models

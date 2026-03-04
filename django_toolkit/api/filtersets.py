@@ -5,9 +5,7 @@ from django.db.models.fields import Field
 from django.db.models import Model, QuerySet, OrderBy, F, ForeignKey, OneToOneField
 from django.db.models.fields import *
 
-from ..functions.restrict_queryset import restrict_queryset_for_user
-
-#from generic.functions.decorators import add_method
+from django_toolkit.functions.debug import *
 
 
 class FilterSetFactory:
@@ -35,12 +33,13 @@ class FilterSetFactory:
             "model": model,
             "fields": []
         }
-
+        
         attributes = {
             "id": django_filters.ModelMultipleChoiceFilter(
                 field_name='id',
                 to_field_name='id',
-                queryset=restrict_queryset_for_user(queryset=model.objects, user=request.user),
+                #queryset=restrict_queryset_for_user(queryset=model.objects, user=request.user),
+                queryset=model.objects.for_request(request),
             ),
         }
 
@@ -50,12 +49,12 @@ class FilterSetFactory:
                 attributes[field.name] = django_filters.ModelMultipleChoiceFilter(
                     field_name=field.name,
                     to_field_name=field.name,
-                    queryset=restrict_queryset_for_user(queryset=model.objects, user=request.user),
+                    queryset=model.objects.for_request(request),
                 )
                 
                 # String-Filter
                 if field.__class__ in self.char_classes:
-                    attributes[f"{field.name}__contains"] = django_filters.CharFilter(
+                    attributes[f"{field.name}__contains"] = django_filters.CharFilter(      # type: ignore
                         field_name=field.name,
                         lookup_expr='icontains',
                     )
@@ -72,13 +71,13 @@ class FilterSetFactory:
                                 attributes[field.name] = django_filters.ModelMultipleChoiceFilter(
                                     field_name=f"{field.name}__{remote_model_field.name}".lower(),
                                     to_field_name=remote_model_field.name,
-                                    queryset=restrict_queryset_for_user(queryset=remote_model.objects, user=request.user),
+                                    queryset=remote_model.objects.for_request(request),
                                 )
                     # Filter the id field of the remote model
                     attributes[f"{field.name}_id"] = django_filters.ModelMultipleChoiceFilter(
                         field_name=f"{field.name}__id",
                         to_field_name='id',
-                        queryset=restrict_queryset_for_user(queryset=field.related_model.objects, user=request.user),
+                        queryset=field.related_model.objects.for_request(request),
                     )
 
         # Zusätzliche (externe) Filter übernehmen
@@ -86,7 +85,7 @@ class FilterSetFactory:
             
         # Meta-Klasse erstellen
         meta_class = type('Meta', (), meta_attributes)
-        attributes["Meta"] = meta_class
+        attributes["Meta"] = meta_class     # type: ignore
 
         # Den User mit geben
         attributes["user"] = request.user
@@ -114,7 +113,6 @@ class RelatedOrderingFilter(OrderingFilter):
     def _retrieve_all_related_fields(
             self,
             fields: tuple,
-            model: Model,
             depth: int = 0
     ) -> list:
         valid_fields = []
@@ -125,7 +123,6 @@ class RelatedOrderingFilter(OrderingFilter):
             if field.related_model:
                 rel_fields = self._retrieve_all_related_fields(
                     field.related_model._meta.get_fields(),
-                    field.related_model,
                     depth + 1
                 )
                 for rel_field in rel_fields:
@@ -141,11 +138,11 @@ class RelatedOrderingFilter(OrderingFilter):
         return valid_fields
 
 
-    def get_valid_fields(self, queryset: QuerySet, view, context: dict = None) -> list:
+    def get_valid_fields(self, queryset: QuerySet, view, context: dict | None = None) -> list:
         valid_fields = getattr(view, 'ordering_fields', self.ordering_fields)
         if valid_fields == '__all_related__':
             valid_fields = [
-                *self._retrieve_all_related_fields(queryset.model._meta.get_fields(), queryset.model),
+                *self._retrieve_all_related_fields(queryset.model._meta.get_fields()),  
                 *[(key, key.title().split('__')) for key in queryset.query.annotations]
             ]
         else:

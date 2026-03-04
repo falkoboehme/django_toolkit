@@ -1,8 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import  Permission, GroupManager
 from django.utils.translation import gettext_lazy as _
-from .base_models import DTHistoryChangeLoggingModel
+from .base_models import DTHistoryChangeLoggingModel, DTModelManager
 from ..template_context.card_definition import CardDefinition
+
+
+class DTGroupManager(DTModelManager, GroupManager):
+    pass
 
 
 class DTGroup(DTHistoryChangeLoggingModel):
@@ -26,7 +30,7 @@ class DTGroup(DTHistoryChangeLoggingModel):
         help_text=_('Additional remarks'),
     )
 
-    objects = GroupManager()
+    objects = DTGroupManager()
 
 
     class Meta(DTHistoryChangeLoggingModel.Meta):

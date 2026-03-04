@@ -3,14 +3,14 @@ from collections import OrderedDict
 from django.conf import settings
 from django.urls.exceptions import NoReverseMatch
 from django.core.paginator import Paginator
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.reverse import reverse
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import viewsets, pagination
-from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 
 from .filtersets import RelatedOrderingFilter, FilterSetFactory
@@ -21,6 +21,9 @@ from .mixins.check_permission import CheckPermissionMixin
 
 
 log = logging.getLogger("toolkit")
+
+DT_API_FILTER_BACKENDS = [DjangoFilterBackend, SearchFilter, RelatedOrderingFilter]
+
 
 class TokenAuthView(TokenObtainPairView):
     _serializer_class = "django_toolkit.api.serializers.APITokenAuthSerializer"
@@ -102,7 +105,7 @@ class APIListPagination(APIPagination):
 
 class DTAPIViewSet(CheckPermissionMixin, viewsets.ModelViewSet):
     """
-    Base Viewset including CheckPermissionMixin to check if the user has the rerquired rights
+    Base Viewset including CheckPermissionMixin to check if the user has the required rights
 
     filter_backends:
     - DjangoFilterBackend: filter results via API: ?name=AWS
@@ -114,7 +117,7 @@ class DTAPIViewSet(CheckPermissionMixin, viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     search_fields = []
     additional_filters = {}
-    filter_backends = [DjangoFilterBackend, SearchFilter, RelatedOrderingFilter]
+    filter_backends = DT_API_FILTER_BACKENDS
     pagination_class  = APIPagination
     # activates the RelatedOrderingFilter
     ordering_fields = '__all_related__'
@@ -142,7 +145,7 @@ class DTReadOnlyAPIViewSet(CheckPermissionMixin, viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     search_fields = []
     additional_filters = {}
-    filter_backends = [DjangoFilterBackend, SearchFilter, RelatedOrderingFilter]
+    filter_backends = DT_API_FILTER_BACKENDS
     pagination_class  = APIPagination
     # activates the RelatedOrderingFilter
     ordering_fields = '__all_related__'

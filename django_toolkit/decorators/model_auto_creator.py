@@ -1,5 +1,5 @@
 
-from django_toolkit.auto_creator.auto_creator import ModelAutoCreator
+from django_toolkit.auto_creator.auto_creator import DTModelAutoCreator
 
 def model_auto_creator(
     create_app_urls: bool = True,
@@ -23,6 +23,6 @@ def model_auto_creator(
             'create_api_views': create_api_views,
             'create_api_serializers': create_api_serializers,
         }
-        ModelAutoCreator.register(model_class, **options)
+        DTModelAutoCreator.register(model_class, **options)
         return model_class
     return decorator

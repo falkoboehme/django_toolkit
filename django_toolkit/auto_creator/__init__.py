@@ -1,7 +1,7 @@
-from .auto_creator import ModelAutoCreator
+from .auto_creator import DTModelAutoCreator
 from ..decorators.model_auto_creator import model_auto_creator
 
 __all__ = [
-    'ModelAutoCreator',
+    'DTModelAutoCreator',
     'model_auto_creator'
 ]

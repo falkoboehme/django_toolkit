@@ -5,13 +5,13 @@ from .base_models import (
     DTHistoryChangeLoggingModel,
     DTEnumModel,
     DTReadOnlyEnumModel,
-    RequestBasedQueryset,
-    get_user_based_queryset_backend,
+    DTModelManager,
+    DTRequestBasedQueryset,
     DTModel,
 )
 from .group import DTGroup
 from .user import DTUser
-from ..auto_creator.auto_creator import ModelAutoCreator
+from ..auto_creator.auto_creator import DTModelAutoCreator
 from ..decorators.model_auto_creator import model_auto_creator
 
 
@@ -23,11 +23,11 @@ __all__ = [
     'DTHistoryChangeLoggingModel',
     'DTEnumModel',
     'DTReadOnlyEnumModel',
-    'RequestBasedQueryset',
-    'get_user_based_queryset_backend',
+    'DTModelManager',
+    'DTRequestBasedQueryset',
     'DTGroup',
     'DTUser',
     'model_auto_creator',
-    'ModelAutoCreator',
+    'DTModelAutoCreator',
     'DTModel',
 ]

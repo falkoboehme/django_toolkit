@@ -23,7 +23,7 @@ class DjangoToolkitConfig(AppConfig):
         
         from django.conf import settings
         from django.apps import apps
-        from .auto_creator.auto_creator import ModelAutoCreator
+        from .auto_creator.auto_creator import DTModelAutoCreator
         
         # Only auto-sync in DEBUG mode
         if not settings.DEBUG:
@@ -38,7 +38,7 @@ class DjangoToolkitConfig(AppConfig):
         #     print(f"   {app_label}: {list(models.keys())}")
         try:
             # Auto-sync URLs
-            modified_files = ModelAutoCreator().auto_sync()
+            modified_files = DTModelAutoCreator().auto_create()
             
             if modified_files:
                 log.info("URLs were auto-updated")

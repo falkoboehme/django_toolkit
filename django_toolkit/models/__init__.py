@@ -6,11 +6,10 @@ from .base_models import (
     DTEnumModel,
     DTReadOnlyEnumModel,
     DTModelManager,
-    DTRequestBasedQueryset,
-    DTModel,
 )
 from .group import DTGroup
 from .user import DTUser
+from .request_based import DTRequestBasedQueryset
 from ..auto_creator.auto_creator import DTModelAutoCreator
 from ..decorators.model_auto_creator import model_auto_creator
 
@@ -29,5 +28,4 @@ __all__ = [
     'DTUser',
     'model_auto_creator',
     'DTModelAutoCreator',
-    'DTModel',
 ]

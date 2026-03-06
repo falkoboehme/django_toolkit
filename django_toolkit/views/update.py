@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from .base import DTViewMixins
 from ..template_context.button import Button, form_button_cancel, form_button_reset, form_button_update
-from ..functions.permissions import get_permission_for_model, get_perm_action_from_operation
+from ..functions.permissions import get_permission_for_model_action, get_perm_action_from_operation
 from ..functions.models import get_app_model_url
 
 
@@ -21,7 +21,7 @@ class DTUpdateView(DTViewMixins, UpdateView):
 
 
     def get_permission_required(self) -> list[str]:
-        return [get_permission_for_model(self.model, self.perm_action)]
+        return [get_permission_for_model_action(self.model, self.perm_action)]
 
 
     def get_context_data(self, **kwargs):

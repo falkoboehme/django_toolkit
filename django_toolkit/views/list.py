@@ -4,7 +4,7 @@ from django.views.generic import ListView
 from typing import Any, cast
 from .base import DTViewMixins
 from ..functions.permissions import (
-    get_permission_for_model,
+    get_permission_for_model_action,
     get_perm_action_from_operation,
 )
 
@@ -21,7 +21,7 @@ class DTListView(DTViewMixins, ListView):
     tab_param_name = "tab"
 
     def get_permission_required(self) -> list[str]:
-        return [get_permission_for_model(self.model, self.perm_action)]
+        return [get_permission_for_model_action(self.model, self.perm_action)]
 
     def get_table(self):
         if self.table_class is None:

@@ -1,6 +1,6 @@
 from django.apps import apps
 from django.db import models
-from .permissions import ALL_OPERATIONS, PERMISSIION_ACTION
+from .permissions import ALL_OPERATIONS, PERMISSION_ACTION
 
 
 def get_app_label(model):
@@ -161,7 +161,7 @@ def get_model_operation_name(model: models.Model, operation: str) -> str:
 
 def get_model_permission_name(model: models.Model, perm: str) -> str:
     """Create a permission name based on model name and operation (e.g. 'user.view' or 'user.add')"""
-    assert perm in PERMISSIION_ACTION, f"Invalid permission '{perm}'. Must be one of {PERMISSIION_ACTION}"
+    assert perm in PERMISSION_ACTION, f"Invalid permission '{perm}'. Must be one of {PERMISSION_ACTION}"
     return f"{model._meta.model_name.lower()}.{perm}"   # type: ignore
 
 

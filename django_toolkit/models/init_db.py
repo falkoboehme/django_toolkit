@@ -35,10 +35,12 @@ class InitDB:
             {field3: value3, field4: [value4a, value4b]},
         ],
         Group: [
-            {"name": "Default", "permissions": [{
+            {"name": "Default", "permissions": {
                     User: ["view", "change"],
-                }]
+                    Group: ["view"],
+                }
             },
+        ]
     }
     """
 
@@ -128,18 +130,30 @@ class InitDB:
             raise FieldNotSet(f"Model '{model.__name__}': Field '{field_name}' missing in {obj}")
 
 
-    def get_permission_ids(self, field, permission_list):
-        #print(f"{field}: {permission_list}")
+    # def get_permission_ids(self, field, permission_list):
+    #     #print(f"{field}: {permission_list}")
+    #     ids = []
+    #     for model_rights in permission_list:
+    #         for perm_model, right_list in model_rights.items():
+    #             content_type = self.get_content_type(perm_model)
+    #             for right in right_list:
+    #                 permission = Permission.objects.get(
+    #                     content_type_id=content_type.id,
+    #                     codename__startswith=right
+    #                 )
+    #                 ids.append(permission.id)   # type: ignore
+    #     return ids
+
+    def get_permission_ids(self, field, permissions_dict):
         ids = []
-        for model_rights in permission_list:
-            for perm_model, right_list in model_rights.items():
-                content_type = self.get_content_type(perm_model)
-                for right in right_list:
-                    permission = Permission.objects.get(
-                        content_type_id=content_type.id,
-                        codename__startswith=right
-                    )
-                    ids.append(permission.id)   # type: ignore
+        for model, permission_list in permissions_dict.items():
+            for right in permission_list:
+                content_type = self.get_content_type(model)
+                permission = Permission.objects.get(
+                    content_type_id=content_type.id,
+                    codename__startswith=right
+                )
+                ids.append(permission.id)   # type: ignore
         return ids
     
 

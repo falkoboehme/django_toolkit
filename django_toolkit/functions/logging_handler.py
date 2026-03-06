@@ -3,6 +3,23 @@ from pathlib import Path
 from logging.handlers import TimedRotatingFileHandler
 
 
+def log_once_per_request(log_func, request, key: str, message: str, attr_name: str = "_dt_logged_once_per_request"):
+    if request is None:
+        log_func(message)
+        return
+
+    logged_keys = getattr(request, attr_name, None)
+    if logged_keys is None:
+        logged_keys = set()
+        setattr(request, attr_name, logged_keys)
+
+    if key in logged_keys:
+        return
+
+    logged_keys.add(key)
+    log_func(message)
+
+
 class DTProjectDailyFileHandler(TimedRotatingFileHandler):
     """Daily rotating file handler with rotated filenames: YYYY-MM-DD.<projectname>.log"""
 

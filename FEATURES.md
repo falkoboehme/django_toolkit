@@ -22,6 +22,16 @@ Extends the Meta information of model by:
 ### DTUser
 ### DTGroup
 
+## Custom Group permissions related_name
+Wenn ein eigenes `Group`-Modell mit eigenem `permissions.related_name` genutzt wird, muss
+`ModelBackend._get_group_permissions` angepasst werden (z. B. in `user.apps.UserConfig.ready`).
+
+Empfohlene Konfiguration in `settings.py`:
+
+```python
+DT_GROUP_RELATED_NAME_FOR_PERMISSION = "dtgroup"
+```
+
 
 # Mixins
 ## Models

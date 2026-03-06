@@ -77,7 +77,7 @@ class BaseSerializer(serializers.HyperlinkedModelSerializer, serializers.ModelSe
     adds fields id, url and display
     """
     serializer_related_field = serializers.HyperlinkedRelatedField
-    id = serializers.ReadOnlyField()
+    id = serializers.IntegerField(read_only=True)
     display = serializers.SerializerMethodField(read_only=True)
 
     def get_display(self, obj):

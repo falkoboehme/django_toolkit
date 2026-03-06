@@ -2,6 +2,10 @@
 
 Ein wiederverwendbares Django-Paket mit hilfreichen Komponenten und Utilities.
 
+## Quickstart
+
+Für ein vollständiges Setup aller Features siehe [QUICKSTART.md](QUICKSTART.md).
+
 ## Installation
 
 ```bash
@@ -21,6 +25,40 @@ pip install -e .
 import django_toolkit
 
 # Beispielverwendung hier
+```
+
+### Eigenes Group-Modell mit custom related_name für Permissions
+
+Wenn `User.groups` auf ein eigenes `Group`-Modell zeigt und `Group.permissions` ein eigenes `related_name` nutzt,
+arbeitet das Django-Standard-`ModelBackend` nicht mehr korrekt mit Gruppenrechten.
+
+Konfiguration in `settings.py`:
+
+```python
+DT_GROUP_RELATED_NAME_FOR_PERMISSION = "dtgroup"
+```
+
+Patch in `user/apps.py`:
+
+```python
+from django.apps import AppConfig
+
+
+class UserConfig(AppConfig):
+    name = 'user'
+
+    # Required to use own Group model with custom related_name for permissions
+    def ready(self):
+        from django.contrib.auth.models import Permission
+        from django.contrib.auth.backends import ModelBackend
+        from django.conf import settings
+
+        def _get_group_permissions(self, user_obj):
+            group_related_name = getattr(settings, 'DT_GROUP_RELATED_NAME_FOR_PERMISSION', 'dtgroup')
+            group_filter = {f"{group_related_name}__in": user_obj.groups.all()}
+            return Permission.objects.filter(**group_filter)
+
+        ModelBackend._get_group_permissions = _get_group_permissions    # type: ignore
 ```
 
 ### RequestBasedQueryset (explizit)

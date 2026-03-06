@@ -94,7 +94,7 @@ class RequestBasedQuerysetCreatorMixin:
         create_file(
             file_path=project_file_path,
             content=content,
-            overwrite=True,
+            overwrite=False,
         )
         return path.as_posix()
 

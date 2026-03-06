@@ -1,7 +1,7 @@
 from django.db import models
 from django.views.generic import DetailView
 from .base import DTViewMixins
-from ..functions.permissions import get_permission_for_model, get_perm_action_from_operation
+from ..functions.permissions import get_permission_for_model_action, get_perm_action_from_operation
 from ..template_context.modal import confirm_delete_modal
 
 
@@ -18,7 +18,7 @@ class DTDetailView(DTViewMixins, DetailView):
 
     
     def get_permission_required(self) -> list[str]:
-        return [get_permission_for_model(self.model, self.perm_action)]
+        return [get_permission_for_model_action(self.model, self.perm_action)]
 
 
     def get_context_data(self, **kwargs):

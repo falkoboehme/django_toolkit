@@ -33,7 +33,7 @@ class MenuCreator:
 
         app_sections = ""
         for app_label in sorted(apps_with_models.keys()):
-            app_sections += f"    menu_items.append(MenuEntry(title='{app_label.title()}', is_header=True))\n"
+            app_sections += f"    menu_items.append(MenuEntry(title='{app_label.title()}', is_header=True, view_permission=True))\n"
             for model_info in sorted(apps_with_models[app_label], key=lambda item: item["model_class"].__name__):
                 model_class_name = model_info["model_class"].__name__
                 app_sections += f"    menu_items.append(MenuEntry(model={model_class_name}, request=request))\n"
@@ -45,12 +45,12 @@ class MenuCreator:
             f"\n"
             f"def get_side_menu_items(request):\n"
             f"    menu_items = [\n"
-            f"        MenuEntry(title='Home', url=('/')),\n"
+            f"        MenuEntry(title='Home', url=('/'), view_permission=True),\n"
             f"    ]\n"
             f"\n"
             f"{app_sections}"
             f"\n"
-            f"    menu_items.append(MenuEntry(title='', is_header=True))\n"
+            f"    menu_items.append(MenuEntry(title='', is_header=True, view_permission=True))\n"
             f"\n"
             f"    return menu_items\n"
         )
@@ -62,7 +62,7 @@ class MenuCreator:
         file = create_file(
             file_path=file_path,
             content=content,
-            overwrite=True,
+            overwrite=False,
         )
         files.add(file) if file else None
 

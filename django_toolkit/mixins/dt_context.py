@@ -1,24 +1,11 @@
+import importlib
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from ..template_context.menu_entry import MenuEntry
 from ..template_context.icon import icon_rest_api, icon_swagger_v2, icon_swagger_v3
-# from ..templatetags.calc import *
 
 import logging
 log = logging.getLogger("toolkit")
-
-import importlib
-from django.conf import settings
-app_label = settings.BASE_DIR.name
-menu_file = "menu"
-try:
-    module = importlib.import_module(f"{app_label}.{menu_file}")
-    get_side_menu_items = getattr(module, "get_side_menu_items")
-except ModuleNotFoundError as error:
-    log.error('No menu.py in project folder found')
-except AttributeError as error:
-    log.error('No function get_side_menu_items in menu.py found')
-    raise error
 
 
 class DTContextMixin:
@@ -31,7 +18,7 @@ class DTContextMixin:
         self._add_context(self.global_context, request, instance)
         # self._add_context(self.default_context, request, instance)
         self._add_context(self.menu_context, request, instance)
-        #self._add_context(self.footer_context, request, instance)
+        self._add_context(self.footer_context, request, instance)
         return self._context
     
 
@@ -54,19 +41,23 @@ class DTContextMixin:
     
 
     def menu_context(self, request, instance=None):
-        context = {'menu_items': []}
-        user_permissions = request.user.get_all_permissions()
+        project_name = settings.BASE_DIR.name
+        menu_file = "menu"
+        try:
+            module = importlib.import_module(f"{project_name}.{menu_file}")
+            get_side_menu_items = getattr(module, "get_side_menu_items")
 
-        for menu_entry in get_side_menu_items(request=request):
-            menu_entry_access = True
-            if isinstance(menu_entry, MenuEntry):
-                for required_permission in menu_entry.permissions:
-                    if required_permission not in user_permissions:
-                        menu_entry_access = False
-            if menu_entry_access:
-                context['menu_items'].append(menu_entry)
-        return context
-    
+            context = {'menu_items': []}
+            for menu_entry in get_side_menu_items(request=request):
+                if menu_entry.view_permission:
+                    context['menu_items'].append(menu_entry)
+            return context
+        except ModuleNotFoundError as error:
+            log.error('No menu.py in project folder found')
+        except AttributeError as error:
+            log.error('No function get_side_menu_items in menu.py found')
+            raise error
+
 
     def footer_context(self, request, instance=None):
         footer_context = {}

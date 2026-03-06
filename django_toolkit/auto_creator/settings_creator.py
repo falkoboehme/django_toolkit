@@ -30,6 +30,7 @@ class SettingsCreatorMixin:
         "DT_DISPLAY_NONE = config('DT_DISPLAY_NONE', default='—', cast=str)",
         "DT_ITEMS_PER_PAGE_MAX = config('DT_ITEMS_PER_PAGE_MAX', default=100, cast=int)",
         "DT_ITEMS_PER_PAGE_DEFAULT = config('DT_ITEMS_PER_PAGE_DEFAULT', default=25, cast=int)",
+        "DT_GROUP_RELATED_NAME_FOR_PERMISSION = config('DT_GROUP_RELATED_NAME_FOR_PERMISSION', default='dtgroup', cast=str)",
     ]
     dt_settings_end_anchor = "# End of Django Toolkit settings (auto-generated, do not edit manually)"
     

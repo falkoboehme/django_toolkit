@@ -16,8 +16,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from .filtersets import RelatedOrderingFilter, FilterSetFactory
 from .metadata import Metadata
 from ..functions.models import get_user_apps_with_models
-# from ..functions.restrict_queryset import restrict_queryset_for_user
 from .mixins.check_permission import CheckPermissionMixin
+from ..functions.permissions import raise_permission_denied
+
+from ..functions.debug import *
 
 
 log = logging.getLogger("toolkit")
@@ -131,10 +133,10 @@ class DTAPIViewSet(CheckPermissionMixin, viewsets.ModelViewSet):
             model=self.model,
             request=self.request,
             additional_filters=self.additional_filters,
-        )
-        # return self.model.objects.restrict(self.request.user)
-        #return restrict_queryset_for_user(queryset=self.model.objects.all(), user=self.request.user)
+        )        
         return self.model.objects.for_request(self.request)
+        
+
 
 
 
@@ -146,20 +148,16 @@ class DTReadOnlyAPIViewSet(CheckPermissionMixin, viewsets.ReadOnlyModelViewSet):
     search_fields = []
     additional_filters = {}
     filter_backends = DT_API_FILTER_BACKENDS
-    pagination_class  = APIPagination
-    # activates the RelatedOrderingFilter
+    pagination_class = APIPagination
     ordering_fields = '__all_related__'
-    # extended Metadata class
     metadata_class = Metadata
+    http_method_names = ["get", "head", "options"]
 
     def get_queryset(self):
         assert hasattr(self, "model"), f"model not defined in {self.__class__}"
-        # Set the filterset_class in the function, so we have access to the request (to get the user) 
         self.filterset_class = FilterSetFactory().filterset_class_factory(
             model=self.model,
             request=self.request,
             additional_filters=self.additional_filters,
         )
-        # return self.model.objects.restrict(self.request.user)
-        #return restrict_queryset_for_user(queryset=self.model.objects.all(), user=self.request.user)
         return self.model.objects.for_request(self.request)

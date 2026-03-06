@@ -1,6 +1,7 @@
 {% extends 'django_toolkit/base/layout.html' %}
 {% load django_tables2 %}
 {% load i18n l10n %}
+{% load static %}
 
 
 {% block content-header %}
@@ -21,7 +22,19 @@
                             {% for column in table.columns %}
                                 <th {{ column.attrs.th.as_html }} scope="col">
                                     {% if column.orderable %}
-                                        <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
+                                        <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">
+                                            {{ column.header }}
+                                            {% if column.is_ordered %}
+                                                <img
+                                                    src="{% if column.order_by_alias.is_descending %}{% static 'django_toolkit/icons/chevron-down.svg' %}{% else %}{% static 'django_toolkit/icons/chevron-up.svg' %}{% endif %}"
+                                                    class="ms-1"
+                                                    alt=""
+                                                    width="16"
+                                                    height="16"
+                                                    aria-hidden="true"
+                                                >
+                                            {% endif %}
+                                        </a>
                                     {% else %}
                                         {{ column.header }}
                                     {% endif %}

@@ -1,20 +1,38 @@
 from django.conf import settings
+from django.db.models import QuerySet
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.contrib import auth
 from django.contrib.auth.models import Permission
 
-
 import logging
-
 log = logging.getLogger("toolkit")
+
+"""
+This module contains functions to check permissions for users and objects.
+
+Permissions are defined in the Django auth system and can be assigned to users and groups.
+The main function is `user_has_object_perms` which checks if a user has the required permissions to perform an action on an object.
+
+Permissions can be represented as strings (e.g. "auth.view_group") or as Permission objects.
+The functions in this module can handle both representations.
+
+In general we use the "app_label.action_modelname" format for permission (e.g. "auth.view_group"),
+because we need no database query to check if a user has a permission, while if we use Permission objects,
+we need to query the database to get the Permission object for the string representation of the permission.
+
+If we receive a permission object, we convert it to a string using the `permission_to_string` function.
+If you need an  permission object from a string, you can use the `string_to_permission` function,
+but be aware that this will query the database, so it should be used with caution.
+
+"""
 
 
 READ_ONLY_OPERATIONS = ["detail", "list"]
 READ_WRITE_OPERATIONS = ["create", "update", "delete"]
 ALL_OPERATIONS = READ_ONLY_OPERATIONS + READ_WRITE_OPERATIONS
 
-PERMISSIION_ACTION = ["view", "add", "change", "delete"]
-OPERATION_PERMISSIION_ACTION_MAPPING = {
+PERMISSION_ACTION = ["view", "add", "change", "delete"]
+OPERATION_PERMISSION_ACTION_MAPPING = {
     "detail": "view",
     "list": "view",
     "create": "add",
@@ -24,8 +42,8 @@ OPERATION_PERMISSIION_ACTION_MAPPING = {
 
 
 def get_perm_action_from_operation(operation):
-    if operation in OPERATION_PERMISSIION_ACTION_MAPPING:
-        return OPERATION_PERMISSIION_ACTION_MAPPING[operation]
+    if operation in OPERATION_PERMISSION_ACTION_MAPPING:
+        return OPERATION_PERMISSION_ACTION_MAPPING[operation]
     else:
         raise ImproperlyConfigured(
             f"Operation '{operation}' is not supported. Supported operations are: {ALL_OPERATIONS}"
@@ -33,61 +51,63 @@ def get_perm_action_from_operation(operation):
 
 
 def get_operations_from_perm_action(perm_action):
-    if perm_action in OPERATION_PERMISSIION_ACTION_MAPPING.values():
+    if perm_action in OPERATION_PERMISSION_ACTION_MAPPING.values():
         return [
             operation
-            for operation, pa in OPERATION_PERMISSIION_ACTION_MAPPING.items()
+            for operation, pa in OPERATION_PERMISSION_ACTION_MAPPING.items()
             if pa == perm_action
         ]
     else:
         raise ImproperlyConfigured(
-            f"Permission action '{perm_action}' is not supported. Supported permission actions are: {PERMISSIION_ACTION}"
+            f"Permission action '{perm_action}' is not supported. Supported permission actions are: {PERMISSION_ACTION}"
         )
 
 
-def get_perm_action_from_permission(permission):
-    return permission.codename.split("_")[0]
+def permission_to_string(permission_obj: Permission) -> str:
+    """
+    Returns the string of the permission (<Permission: Auth | Group | Can add Group> -> auth.add_group)
+    permission_obj can be a Permission object, a list of Permission objects or a QuerySet of Permission objects.
+    """
+    return f"{permission_obj.content_type.app_label}.{permission_obj.codename}"
 
 
-# def get_perm_model_from_permission(permission):
-#     return permission.content_type.model
+def permissions_to_strings(permission_objs: list[Permission] | QuerySet[Permission]) -> set[str]:
+    """
+    Returns a set of strings of the permissions in the list of permission objects.
+    """
+    return {permission_to_string(perm) for perm in permission_objs}
 
 
-# def permissions_by_model(permission_list):
-#     codename_mapping = {
-#         "add": "a",
-#         "change": "c",
-#         "delete": "d",
-#         "view": "v",
-#     }
-
-#     display_dict = {}
-#     for permission in permission_list:
-#         permission_model = permission.content_type.model_class()
-#         if not permission_model in display_dict:
-#             display_dict[permission_model] = []
-#         permission_opereration = (permission.codename).split("_")[0]
-#         short_op = codename_mapping[permission_opereration]
-#         display_dict[permission_model].append(short_op)
-#     return display_dict
+def string_to_permission(permission_str: str) -> Permission:
+    """
+    Returns the Permission object from the permission_str (auth.add_group -> <Permission: Auth | Group | Can add Group>)
+    permission_str can be a string or a list of strings.
+    """
+    app_label, codename = permission_str.split(".", 1)
+    return Permission.objects.get(content_type__app_label=app_label, codename=codename)
 
 
-# def permission_to_string(permisson):
-#     """
-#     Returns the text of the permission (<Permission: Inventory | Cloudarea | Can add Cloudarea> -> inventory.add_cloudarea)
-#     """
-#     return f"{permisson.content_type.app_label}.{permisson.codename}"
+def strings_to_permissions(permission_strs: list[str]) -> set[Permission]:
+    """
+    Returns the set of Permission objects from the list of permission_strs.
+    """
+    return {string_to_permission(perm) for perm in permission_strs}
 
 
-# def string_to_permission(permission_str):
-#     """
-#     Returns the permission object from the permission_str (e.g. auth.view_group)
-#     """
-#     app_label, codename = permission_str.split(".", 1)
-#     return Permission.objects.get(content_type__app_label=app_label, codename=codename)
+def get_app_model_action_from_permission(permission):
+    if isinstance(permission, Permission):
+        permission = permission_to_string(permission)
+
+    parts = permission.split(".")
+    app_label = parts[0]
+    perm_action_model = parts[1]
+    perm_action = perm_action_model.split("_")[0]
+    model_name = "_".join(perm_action_model.split("_")[1:])
+    return app_label, model_name, perm_action
 
 
-def get_permission_for_model(model, action):
+
+def get_permission_for_model_action(model, action):
     """
     Resolve the named permission for a given model (or instance) and action (e.g. view or add).
 
@@ -96,7 +116,7 @@ def get_permission_for_model(model, action):
     """
     # Resolve to the "concrete" model (for proxy models)
     model = model._meta.concrete_model
-
+    assert action in PERMISSION_ACTION, f"Action must be in {PERMISSION_ACTION}. Not {action}"
     return f"{model._meta.app_label}.{action}_{model._meta.model_name}"
 
 
@@ -169,12 +189,12 @@ def user_has_object_perms(user, obj, operation=None):
 
     # for add we do not have an object, so model permissions to add are sufficiant
     if operation == "add":
-        req_perm = get_permission_for_model(model=obj, action=operation)
+        req_perm = get_permission_for_model_action(model=obj, action=operation)
         if req_perm in all_user_permissions:
             return True
     else:
         model = obj._meta.model
-        req_perm = get_permission_for_model(model=model, action=operation)
+        req_perm = get_permission_for_model_action(model=model, action=operation)
         # Check model permission
         if req_perm in all_user_permissions:
             # Check object permission

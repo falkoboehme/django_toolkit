@@ -19,7 +19,7 @@ class APIViewCreatorMixin:
         lines = "from django.conf import settings\n"
         lines += "from rest_framework.routers import APIRootView\n"
         lines += "from rest_framework.permissions import IsAuthenticated, AllowAny\n"
-        lines += "from django_toolkit.api.views import DTAPIViewSet\n"
+        lines += "from django_toolkit.api.views import DTAPIViewSet, DTReadOnlyAPIViewSet\n"
         lines += "from .serializers import *\n"
         lines += "from ..models import *\n"
 
@@ -67,9 +67,14 @@ class APIViewCreatorMixin:
     def _get_model_api_view_file_content(self, model_info: dict) -> list:
         """Generate the content for a model's view file."""
         lines = []
-        lines.append(f"class {model_info['model_name']}ViewSet(DTAPIViewSet):")
+        model_class = model_info["model_class"]
+        is_read_only = bool(getattr(model_class._meta, "read_only", False))
+        base_viewset = "DTReadOnlyAPIViewSet" if is_read_only else "DTAPIViewSet"
+        lines.append(f"class {model_info['model_name']}ViewSet({base_viewset}):")
         lines.append(f"    model = {model_info['model_name']}")
         lines.append(f"    serializer_class = {model_info['model_name']}Serializer")
+        lines.append("")
+        lines.append("")
 
         return lines
         

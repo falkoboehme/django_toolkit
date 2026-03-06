@@ -377,6 +377,7 @@ body.dt-app {
     background-color: var(--dt-surface-card);
     box-shadow: 0 6px 14px var(--dt-shadow-strong), 0 18px 34px var(--dt-shadow-strong);
     margin: .75rem;
+    margin-bottom: 1.5rem;
 }
 
 .dt-table-container {
@@ -642,7 +643,10 @@ select.form-control:focus {
 }
 
 .dt-card-body {
-    padding: .35rem .6rem .6rem;
+    padding-top: 0rem;
+    padding-right: .5rem;
+    padding-bottom: .5rem;
+    padding-left: .5rem;
 }
 
 .dt-card-placeholder {

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import  Permission, GroupManager
 from django.utils.translation import gettext_lazy as _
@@ -19,7 +20,7 @@ class DTGroup(DTHistoryChangeLoggingModel):
     permissions = models.ManyToManyField(
         to=Permission,
         blank=True,
-        related_name='usergroup',
+        related_name=getattr(settings, 'DT_GROUP_RELATED_NAME_FOR_PERMISSION', 'dtgroup'),
         verbose_name=_('Permissions'),
         help_text=_('Which permissions do users of this group get?'),
     )

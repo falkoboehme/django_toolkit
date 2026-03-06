@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
@@ -7,7 +8,7 @@ from .base_models import DTHistoryChangeLoggingModel, DTModelManager
 from .group import DTGroup
 from ..template_context.card_definition import CardDefinition
 from ..functions.debug import *
-from ..functions.permissions import get_perm_action_from_permission
+# from ..functions.permissions import get_perm_action_from_permission
 
 
 
@@ -135,49 +136,13 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
     
     @property
     def group_permissions(self):
-        return Permission.objects.filter(usergroup__user=self).distinct()
+        group_related_name = getattr(settings, 'DT_GROUP_RELATED_NAME_FOR_PERMISSION', 'dtgroup')
+        group_filter = {f"{group_related_name}__in": self.groups.all()}
+        return Permission.objects.filter(models.Q(**group_filter)).distinct()
     
     @property
     def all_permissions(self):
-        return Permission.objects.filter(models.Q(user=self) | models.Q(usergroup__user=self)).distinct()
-    
-
-    # @property
-    # def permissions(self):
-    #     """Permissions with origin (User / Group names)."""
-    #     origins: dict[str, dict[str, set[str]]] = {}
-
-    #     def model_label(perm: Permission) -> str:
-    #         model_cls = perm.content_type.model_class()
-    #         if model_cls is None:
-    #             return f"{perm.content_type.app_label.title()} | {perm.content_type.model}"
-    #         return f"{model_cls._meta.app_label.title()} | {model_cls.__name__}"
-
-    #     def origin_sort_key(origin: str) -> tuple[int, str]:
-    #         return (0, origin) if origin == "User" else (1, origin)
-
-    #     for perm in self.user_permissions.all():
-    #         label = model_label(perm)
-    #         action = get_perm_action_from_permission(perm)
-    #         origins.setdefault(label, {}).setdefault(action, set()).add("User")
-
-    #     for group in self.groups.all().prefetch_related("permissions"):
-    #         for perm in group.permissions.all():
-    #             label = model_label(perm)
-    #             action = get_perm_action_from_permission(perm)
-    #             origins.setdefault(label, {}).setdefault(action, set()).add(group.name)
-
-    #     def sort_actions(actions: set[str]) -> list[str]:
-    #         order = ["view", "add", "change", "delete"]
-    #         return sorted(actions, key=lambda a: order.index(a) if a in order else 99)
-
-    #     lines = []
-    #     for label in sorted(origins.keys()):
-    #         action_parts = []
-    #         for action in sort_actions(set(origins[label].keys())):
-    #             origin_list = sorted(origins[label][action], key=origin_sort_key)
-    #             action_parts.append(f"{action} ({', '.join(origin_list)})")
-    #         lines.append(f"{label} [{', '.join(action_parts)}]")
-
-    #     return mark_safe("<br>".join(lines))
+        group_related_name = getattr(settings, 'DT_GROUP_RELATED_NAME_FOR_PERMISSION', 'dtgroup')
+        group_filter = {f"{group_related_name}__in": self.groups.all()}
+        return Permission.objects.filter(models.Q(user=self) | models.Q(**group_filter)).distinct()
     

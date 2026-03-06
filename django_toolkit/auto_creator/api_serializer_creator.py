@@ -52,6 +52,13 @@ class APISerializerCreatorMixin:
 		"""Generate serializer file content for one model."""
 		model_name = model_info["model_name"]
 		app_label = model_info["app_label"]
+		model_class = model_info["model_class"]
+		is_read_only = bool(getattr(model_class._meta, "read_only", False))
+		read_only_fields_line = ""
+		if is_read_only:
+			read_only_fields_line = (
+				f"        read_only_fields = tuple(field.name for field in [*{model_name}._meta.fields, *{model_name}._meta.many_to_many])\n"
+			)
 		return (
 			"from rest_framework import serializers\n"
 			"from django_toolkit.api.serializers import DTAPISerializer\n"
@@ -64,4 +71,5 @@ class APISerializerCreatorMixin:
 			"    class Meta(DTAPISerializer.Meta):\n"
 			f"        model = {model_name}\n"
 			"        fields = ('__all__')\n"
+			f"{read_only_fields_line}"
 		)

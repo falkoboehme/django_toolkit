@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db.models import QuerySet
+from django.db import models
 from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.contrib import auth
 from django.contrib.auth.models import Permission
@@ -71,7 +71,7 @@ def permission_to_string(permission_obj: Permission) -> str:
     return f"{permission_obj.content_type.app_label}.{permission_obj.codename}"
 
 
-def permissions_to_strings(permission_objs: list[Permission] | QuerySet[Permission]) -> set[str]:
+def permissions_to_strings(permission_objs: list[Permission] | models.QuerySet[Permission]) -> set[str]:
     """
     Returns a set of strings of the permissions in the list of permission objects.
     """
@@ -121,44 +121,44 @@ def get_permission_for_model_action(model, action):
 
 
 # A few helper functions for common logic between User and AnonymousUser.
-def user_get_permissions(user, obj, from_name):
-    permissions = set()
-    name = "get_%s_permissions" % from_name
-    for backend in auth.get_backends():
-        if hasattr(backend, name):
-            func = getattr(backend, name)
-            permissions.update(func(user, obj))
-    return permissions
+# def user_get_permissions(user, obj, from_name):
+#     permissions = set()
+#     name = "get_%s_permissions" % from_name
+#     for backend in auth.get_backends():
+#         if hasattr(backend, name):
+#             func = getattr(backend, name)
+#             permissions.update(func(user, obj))
+#     return permissions
 
 
-def user_has_perm(user, perm, obj):
-    """
-    A backend can raise `PermissionDenied` to short-circuit permission checking.
-    """
-    for backend in auth.get_backends():
-        if not hasattr(backend, "has_perm"):
-            continue
-        try:
-            if backend.has_perm(user, perm, obj):
-                return True
-        except PermissionDenied:
-            return False
-    return False
+# def user_has_perm(user, perm, obj):
+#     """
+#     A backend can raise `PermissionDenied` to short-circuit permission checking.
+#     """
+#     for backend in auth.get_backends():
+#         if not hasattr(backend, "has_perm"):
+#             continue
+#         try:
+#             if backend.has_perm(user, perm, obj):
+#                 return True
+#         except PermissionDenied:
+#             return False
+#     return False
 
 
-def user_has_module_perms(user, app_label):
-    """
-    A backend can raise `PermissionDenied` to short-circuit permission checking.
-    """
-    for backend in auth.get_backends():
-        if not hasattr(backend, "has_module_perms"):
-            continue
-        try:
-            if backend.has_module_perms(user, app_label):
-                return True
-        except PermissionDenied:
-            return False
-    return False
+# def user_has_module_perms(user, app_label):
+#     """
+#     A backend can raise `PermissionDenied` to short-circuit permission checking.
+#     """
+#     for backend in auth.get_backends():
+#         if not hasattr(backend, "has_module_perms"):
+#             continue
+#         try:
+#             if backend.has_module_perms(user, app_label):
+#                 return True
+#         except PermissionDenied:
+#             return False
+#     return False
 
 
 def is_owner(user, obj):
@@ -174,32 +174,18 @@ def is_owner(user, obj):
     return False
 
 
-def user_has_object_perms(user, obj, operation=None):
+def user_has_model_perms(user, model: models.Model, action: str) -> bool:
     """
     Check if a user has permissions to [view, change, delete, add] an object.
     For add, obj must be the model.
     """
-    # TODO
-    all_operations = ["view", "add", "change", "delete"]
-    if operation not in all_operations:
+    if action not in PERMISSION_ACTION:
         raise ImproperlyConfigured(
-            f"operation must be in {all_operations}. Not {operation}"
+            f"action must be in {PERMISSION_ACTION}. Not {action}"
         )
-    all_user_permissions = user.get_all_permissions()
+    req_perm = get_permission_for_model_action(model=model, action=action)
+    return req_perm in permissions_to_strings(user.all_permissions)
 
-    # for add we do not have an object, so model permissions to add are sufficiant
-    if operation == "add":
-        req_perm = get_permission_for_model_action(model=obj, action=operation)
-        if req_perm in all_user_permissions:
-            return True
-    else:
-        model = obj._meta.model
-        req_perm = get_permission_for_model_action(model=model, action=operation)
-        # Check model permission
-        if req_perm in all_user_permissions:
-            # Check object permission
-            pass
-    return False
 
 
 def raise_permission_denied(user, model_obj, action):

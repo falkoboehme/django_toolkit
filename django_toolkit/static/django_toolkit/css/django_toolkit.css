@@ -137,6 +137,11 @@ body.dt-app {
     color: var(--dt-sidebar-active-text);
 }
 
+.sidenav .dt-menu-create-btn {
+    padding: .3rem .5rem;
+    line-height: 1;
+}
+
 .dt-main {
     display: flex;
     flex-direction: column;
@@ -173,6 +178,12 @@ body.dt-app {
 .dt-sidebar-toggle {
     padding: .25rem .55rem;
     margin-right: .6rem;
+}
+
+.dt-sidebar-toggle-icon {
+    width: 1rem;
+    height: 1rem;
+    display: block;
 }
 
 .dt-header-spacer {
@@ -483,6 +494,13 @@ table th a:hover {
     margin: 0;
     font-size: 1.3rem;
     font-weight: 600;
+    min-height: 2.375rem;
+    display: flex;
+    align-items: center;
+}
+
+.dt-page-header .control-group {
+    margin-bottom: 0;
 }
 
 .dt-content-tabs {

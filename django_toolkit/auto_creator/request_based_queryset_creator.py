@@ -91,12 +91,12 @@ class RequestBasedQuerysetCreatorMixin:
         if path.exists() and path.read_text(encoding="utf-8") == content:
             return False
 
-        create_file(
+        created_file = create_file(
             file_path=project_file_path,
             content=content,
             overwrite=False,
         )
-        return path.as_posix()
+        return created_file if created_file else False
 
 
     @staticmethod

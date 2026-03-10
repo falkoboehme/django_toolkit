@@ -1,8 +1,9 @@
 from django.db import models
 from django.views.generic import DetailView
 from .base import DTViewMixins
-from ..functions.permissions import get_permission_for_model_action, get_perm_action_from_operation
+from ..functions.permissions import get_permission_for_model_action, get_perm_action_from_operation, user_has_model_perms
 from ..template_context.modal import confirm_delete_modal
+from ..template_context.button import control_button_update, control_button_delete
 
 
 class DTDetailView(DTViewMixins, DetailView):
@@ -26,7 +27,7 @@ class DTDetailView(DTViewMixins, DetailView):
         context = super().get_context_data(**kwargs)
         context.update(**self.dt_context(self.request))
         context.update(**self.get_card_context(self.request, instance=obj))
-        context.update(**self.get_control_buttons(self.request, instance=obj))
+        context.update(**self.get_control_buttons(self.request, obj=obj))
         context['content_title'] = str(obj)
         context['modal'] = confirm_delete_modal(obj)
         return context

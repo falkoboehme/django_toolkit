@@ -1,8 +1,17 @@
 {% load static %}
 <header class="dt-header">
     <div class="dt-header-inner">
-        <button type="button" class="btn btn-outline-secondary dt-sidebar-toggle" id="dt-sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true" aria-controls="dt-sidenav">
-            <i class="mdi mdi-menu"></i>
+        <button
+            type="button"
+            class="btn btn-outline-secondary dt-sidebar-toggle"
+            id="dt-sidebar-toggle"
+            aria-label="Toggle sidebar"
+            aria-expanded="true"
+            aria-controls="dt-sidenav"
+            data-icon-expanded="{% static 'django_toolkit/icons/pin.svg' %}"
+            data-icon-collapsed="{% static 'django_toolkit/icons/pin-off.svg' %}"
+        >
+            <img class="dt-sidebar-toggle-icon" src="{% static 'django_toolkit/icons/pin.svg' %}" alt="" aria-hidden="true">
         </button>
 
         <div class="dt-header-search-wrap">

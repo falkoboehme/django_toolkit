@@ -18,6 +18,28 @@ function DependencySelectAjax(url, target_id, selected_ids=[]) {
         .catch(error => console.error('Error:', error));
 }
 
+function initializeFilterFormSubmitCleanup() {
+    const forms = document.querySelectorAll('form[data-dt-filter-form="true"]');
+
+    forms.forEach(function (form) {
+        if (form.dataset.dtFilterBound === 'true') {
+            return;
+        }
+
+        form.dataset.dtFilterBound = 'true';
+
+        form.addEventListener('submit', function () {
+            const filterPrefix = form.dataset.dtFilterPrefix || 'filter__';
+            const fields = form.querySelectorAll(`[name^="${filterPrefix}"]`);
+
+            fields.forEach(function (field) {
+                const fieldValue = String(field.value || '').trim();
+                field.disabled = fieldValue === '';
+            });
+        });
+    });
+}
+
 // --- Drag and Drop functions start ---
 // function IsBefore(a, b) {
 //     if (a.parentNode == b.parentNode) {
@@ -50,21 +72,40 @@ function DependencySelectAjax(url, target_id, selected_ids=[]) {
 // --- Drag and Drop functions end ---
 
 function initializeSidebarController() {
-    const layout = document.getElementById('dtk-layout');
-    const sidebar = document.getElementById('dtk-sidenav');
-    const resizer = document.getElementById('dtk-sidenav-resize');
-    const toggle = document.getElementById('dtk-sidebar-toggle');
+    const layout = document.getElementById('dt-layout');
+    const sidebar = document.getElementById('dt-sidenav');
+    const resizer = document.getElementById('dt-sidenav-resize');
+    const toggle = document.getElementById('dt-sidebar-toggle');
 
     if (!layout || !sidebar || !resizer || !toggle) {
         return;
     }
 
-    const STORAGE_WIDTH = 'dtk.sidebar.width';
-    const STORAGE_COLLAPSED = 'dtk.sidebar.collapsed';
-    const MIN_WIDTH = 180;
-    const MAX_WIDTH = 320;
+    const STORAGE_WIDTH = 'dt.sidebar.width';
+    const STORAGE_COLLAPSED = 'dt.sidebar.collapsed';
+    const MIN_WIDTH = 190;
+    const MAX_WIDTH = 300;
     const DEFAULT_WIDTH = 220;
     const COLLAPSED_WIDTH = 0;
+
+    function updateToggleIcon(collapsed) {
+        const icon = toggle.querySelector('.dt-sidebar-toggle-icon');
+        if (!icon) {
+            return;
+        }
+
+        const expandedIcon = toggle.dataset.iconExpanded;
+        const collapsedIcon = toggle.dataset.iconCollapsed;
+
+        if (collapsed && collapsedIcon) {
+            icon.setAttribute('src', collapsedIcon);
+            return;
+        }
+
+        if (!collapsed && expandedIcon) {
+            icon.setAttribute('src', expandedIcon);
+        }
+    }
 
     function clampWidth(width) {
         return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width));
@@ -72,19 +113,20 @@ function initializeSidebarController() {
 
     function setSidebarWidth(width) {
         const normalizedWidth = clampWidth(width);
-        layout.style.setProperty('--dtk-sidebar-width', `${normalizedWidth}px`);
+        layout.style.setProperty('--dt-sidebar-width', `${normalizedWidth}px`);
         localStorage.setItem(STORAGE_WIDTH, String(normalizedWidth));
         return normalizedWidth;
     }
 
     function isCollapsed() {
-        return layout.classList.contains('dtk-sidebar-collapsed');
+        return layout.classList.contains('dt-sidebar-collapsed');
     }
 
     function setCollapsed(collapsed) {
-        layout.classList.toggle('dtk-sidebar-collapsed', collapsed);
-        layout.style.setProperty('--dtk-sidebar-width', collapsed ? `${COLLAPSED_WIDTH}px` : `${setSidebarWidth(getSavedWidth())}px`);
+        layout.classList.toggle('dt-sidebar-collapsed', collapsed);
+        layout.style.setProperty('--dt-sidebar-width', collapsed ? `${COLLAPSED_WIDTH}px` : `${setSidebarWidth(getSavedWidth())}px`);
         toggle.setAttribute('aria-expanded', String(!collapsed));
+        updateToggleIcon(collapsed);
         localStorage.setItem(STORAGE_COLLAPSED, collapsed ? '1' : '0');
     }
 
@@ -113,7 +155,7 @@ function initializeSidebarController() {
             return;
         }
         const nextWidth = clampWidth(event.clientX);
-        layout.style.setProperty('--dtk-sidebar-width', `${nextWidth}px`);
+        layout.style.setProperty('--dt-sidebar-width', `${nextWidth}px`);
     }
 
     function onPointerUp() {
@@ -121,8 +163,8 @@ function initializeSidebarController() {
             return;
         }
         isDragging = false;
-        document.body.classList.remove('dtk-resizing-sidebar');
-        const renderedWidth = parseInt(getComputedStyle(layout).getPropertyValue('--dtk-sidebar-width'), 10);
+        document.body.classList.remove('dt-resizing-sidebar');
+        const renderedWidth = parseInt(getComputedStyle(layout).getPropertyValue('--dt-sidebar-width'), 10);
         if (!Number.isNaN(renderedWidth)) {
             setSidebarWidth(renderedWidth);
         }
@@ -135,7 +177,7 @@ function initializeSidebarController() {
             return;
         }
         isDragging = true;
-        document.body.classList.add('dtk-resizing-sidebar');
+        document.body.classList.add('dt-resizing-sidebar');
         window.addEventListener('pointermove', onPointerMove);
         window.addEventListener('pointerup', onPointerUp);
         event.preventDefault();
@@ -149,9 +191,9 @@ function initializeSidebarController() {
             return;
         }
         const delta = event.key === 'ArrowLeft' ? -16 : 16;
-        const currentWidth = parseInt(getComputedStyle(layout).getPropertyValue('--dtk-sidebar-width'), 10) || getSavedWidth();
+        const currentWidth = parseInt(getComputedStyle(layout).getPropertyValue('--dt-sidebar-width'), 10) || getSavedWidth();
         setSidebarWidth(currentWidth + delta);
-        layout.style.setProperty('--dtk-sidebar-width', `${getSavedWidth()}px`);
+        layout.style.setProperty('--dt-sidebar-width', `${getSavedWidth()}px`);
         event.preventDefault();
     });
 
@@ -159,8 +201,13 @@ function initializeSidebarController() {
     setCollapsed(getSavedCollapsed());
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeSidebarController);
-} else {
+function initializeDjangoToolkit() {
     initializeSidebarController();
+    initializeFilterFormSubmitCleanup();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeDjangoToolkit);
+} else {
+    initializeDjangoToolkit();
 }

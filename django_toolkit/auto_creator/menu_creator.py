@@ -62,7 +62,7 @@ class MenuCreator:
         file = create_file(
             file_path=file_path,
             content=content,
-            overwrite=False,
+            overwrite=True,
         )
         files.add(file) if file else None
 

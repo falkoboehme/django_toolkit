@@ -10,8 +10,8 @@ def menu_button_create(model):
             name='',
             href=f'{get_app_model_url(model)}create/',
             color='green',
-            icon=mark_safe(SVGIcon(icon_name="plus-thick", width=12, height=12, fillcolor="currentcolor", viewbox="2 2 24 24").render()),
-            cls="btn btn-sm lh-1"
+            icon=mark_safe(SVGIcon(icon_name="plus-thick", width=12, height=12, fillcolor="currentcolor", viewbox="2 2 20 22").render()),
+            cls="btn btn-sm lh-1 dt-menu-create-btn"
         )
 
 def goto_button(url, text, color='blue'):

@@ -3,7 +3,7 @@ API View Creator Mixin for ModelAutoCreator
 """
 
 from pathlib import Path
-from django_toolkit.functions.files import insert_lines_in_file, create_file
+from django_toolkit.functions.files import insert_lines_in_file, create_file, is_in_file
 
 
 class APIViewCreatorMixin:
@@ -52,6 +52,10 @@ class APIViewCreatorMixin:
         """Auto-create views for a specific model. Returns a set of files if views were modified."""
         files = set()
         app_model_view_file = Path(f"{app_label}/api/views.py")
+
+        viewset_class_identifier = f"class {model_info['model_name']}ViewSet("
+        if app_model_view_file.exists() and is_in_file(app_model_view_file, viewset_class_identifier):
+            return files
 
         file = insert_lines_in_file(
             file_path=app_model_view_file,

@@ -46,7 +46,7 @@ class DTBaseTable(tables.Table):
     """
     class Meta:
         attrs = {
-            'class': 'table table-hover object-list',
+            'class': 'table table-hover dt-table',
         }
     
     def configure(self, request):

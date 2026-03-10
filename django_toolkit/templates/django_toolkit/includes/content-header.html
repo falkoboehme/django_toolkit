@@ -64,20 +64,9 @@
         {% endfor %}
     </ul>
 </div>
-{% elif active_tab and filter_fields %}
+{% elif tabs and tabs|length > 1 %}
 <div class="pt-2 dt-content-tabs">
-    <ul class="nav nav-tabs" id="listViewTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link{% if active_tab == 'results' %} active{% endif %}" id="results-tab" data-bs-toggle="tab" data-bs-target="#results-panel" type="button" role="tab" aria-controls="results-panel" aria-selected="{% if active_tab == 'results' %}true{% else %}false{% endif %}">
-                {% trans 'Results' %}
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link{% if active_tab == 'filters' %} active{% endif %}" id="filters-tab" data-bs-toggle="tab" data-bs-target="#filters-panel" type="button" role="tab" aria-controls="filters-panel" aria-selected="{% if active_tab == 'filters' %}true{% else %}false{% endif %}">
-                {% trans 'Filters' %}
-            </button>
-        </li>
-    </ul>
+    {% include 'django_toolkit/includes/tabs.html' with tabs=tabs tabs_id='listViewTabs' %}
 </div>
 {% endif %}
 

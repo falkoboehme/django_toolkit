@@ -1,0 +1,66 @@
+{% load i18n calc %}
+<!-- Filters start-->
+<form method="get" data-dt-filter-form="true" data-dt-filter-prefix="{{ filter_param_prefix }}">
+    <div class="row dt-card-grid">
+        {% for card_col in filter_cards %}
+            <div class="col col-md-{{ 12|divide:filter_card_column_count }} dt-card-col">
+                {% for card in card_col %}
+                    <div class="dt-card">
+                        <div class="dt-card-header">
+                            <h5 class="dt-card-title">{{ card.header }}</h5>
+                        </div>
+                        <div class="dt-card-body">
+                            {% if card.fields %}
+                                <table class="table table-hover attr-table">
+                                    <tbody>
+                                        {% for filter in card.fields %}
+                                            <tr class="dt-attr-row">
+                                                <td scope="row" class="dt-attr-label">
+                                                    <label for="id_{{ filter_param_prefix }}{{ filter.name }}">
+                                                        {{ filter.label|capfirst }}
+                                                    </label>
+                                                </td>
+                                                <td class="dt-attr-value">
+                                                    {% if filter.is_boolean %}
+                                                        <select
+                                                            id="id_{{ filter_param_prefix }}{{ filter.name }}"
+                                                            name="{{ filter_param_prefix }}{{ filter.name }}"
+                                                            class="form-select"
+                                                        >
+                                                            <option value="">{% trans 'Any' %}</option>
+                                                            <option value="true" {% if filter.current_value == 'true' %}selected{% endif %}>{% trans 'Yes' %}</option>
+                                                            <option value="false" {% if filter.current_value == 'false' %}selected{% endif %}>{% trans 'No' %}</option>
+                                                        </select>
+                                                    {% else %}
+                                                        <input
+                                                            id="id_{{ filter_param_prefix }}{{ filter.name }}"
+                                                            name="{{ filter_param_prefix }}{{ filter.name }}"
+                                                            type="{{ filter.input_type }}"
+                                                            class="form-control"
+                                                            value="{{ filter.current_value }}"
+                                                        >
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <div class="text-muted small">{% trans 'No filter fields' %}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="row dt-form-actions">
+        <div class="col col-12 col-xl-6"></div>
+        <div class="col col-12 col-xl-6 d-flex gap-2 justify-content-end">
+            <button type="submit" class="btn btn-primary">{% trans 'Apply filters' %}</button>
+            <a href="{{ request.path }}" class="btn btn-outline-secondary">{% trans 'Reset' %}</a>
+        </div>
+    </div>
+</form>
+<!-- Filters end-->

@@ -20,7 +20,7 @@ class APISerializerCreatorMixin:
 		init_file = create_file(
 			file_path=serializers_dir / "__init__.py",
 			content=self._get_app_serializer_init_content(app_label),
-			overwrite=False,
+			overwrite=True,
 		)
 		files.add(init_file) if init_file else None
 

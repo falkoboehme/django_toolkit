@@ -3,12 +3,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission
-from django.utils.safestring import mark_safe
 from .base_models import DTHistoryChangeLoggingModel, DTModelManager
 from .group import DTGroup
 from ..template_context.card_definition import CardDefinition
-from ..functions.debug import *
-# from ..functions.permissions import get_perm_action_from_permission
+from ..functions.permissions import get_permission_for_model_action, permissions_to_strings, PERMISSION_ACTION
 
 
 
@@ -113,13 +111,13 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
                 ),
                 CardDefinition(
                     header=_('Special Rights'),
-                    fields=['is_staff', 'is_superuser', 'user_permissions', 'permissions', ],
-                    ro_fields=['permissions', ],
+                    fields=['is_staff', 'is_superuser', 'user_permissions', 'all_permissions', ],
+                    ro_fields=['all_permissions', ],
                 ),
             ],
             [
                 CardDefinition(
-                    header=_('Comments'),
+                    header=_('Comment'),
                     fields=['comment']
                 ),
                 CardDefinition(

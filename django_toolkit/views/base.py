@@ -6,6 +6,7 @@ from ..mixins.dt_context import DTContextMixin
 from ..template_context.card_definition import CardDefinition
 from ..template_context.card_template import CardTemplate
 from ..template_context.button import control_button_create, control_button_update, control_button_delete
+from ..functions.permissions import user_has_model_perms
 
 
 
@@ -38,6 +39,7 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
                             f"Meta.cards must contain CardDefinition objects, got {type(card_config).__name__}"
                         )
                     all_fields_are_read_only = set(card_config.fields) == set(card_config.ro_fields)
+                    # print(f"Processing card: {card_config}, all_fields_are_read_only={all_fields_are_read_only}, include_read_only_cards={include_read_only_cards}")
                     is_placeholder = not include_read_only_cards and all_fields_are_read_only
                     card = CardTemplate(
                         card_definition=card_config,
@@ -53,14 +55,39 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
         return context
     
 
-    def get_control_buttons(self, request, instance=None) -> dict:
+    def get_tab_context(self) -> list[dict]:
+        tabs = self.get_tabs()
+        default_tab = tabs[0]["key"] if tabs else None
+        tabs_context = []
+        for tab in tabs:
+            tab_key = tab["key"]
+            tabs_context.append({
+                "key": tab_key,
+                "label": tab["label"],
+                "template": tab.get("template"),
+                "is_active": tab_key == default_tab,
+            })
+        return tabs_context
+
+
+    def get_tabs(self) -> list[dict]:
+        return []
+
+
+    def get_control_buttons(self, request, obj=None) -> dict:
         control_buttons = []
-        if instance is not None:
-            control_buttons.append(control_button_update(instance))
-            control_buttons.append(control_button_delete(instance))
+        if obj is not None:
+            if user_has_model_perms(self.request.user, self.model, "change"):   # type: ignore
+                control_buttons.append(control_button_update(obj))
+            if user_has_model_perms(self.request.user, self.model, "delete"):   # type: ignore
+                control_buttons.append(control_button_delete(obj))
+        else:
+            if user_has_model_perms(self.request.user, self.model, "add"):   # type: ignore
+                control_buttons.append(control_button_create(self.model))
         
         return {'control_buttons': control_buttons}
+
     
 
     def get_queryset(self):
-        return self.model._default_manager.for_request(self.request)
+        return self.model._default_manager.for_request(self.request)    # type: ignore

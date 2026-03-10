@@ -39,6 +39,7 @@ class CardRow:
         self.request = request
         self.field_name = field_name or (bound_field.name if bound_field else (field.name if field else None))
         self.__dict__.update(kwargs)
+        # print(f"Initialized CardRow: field_name={self.field_name}, bound_field={self.bound_field}, model_instance={self.model_instance}")
 
     
     @property
@@ -216,6 +217,22 @@ class CardRow:
                 options[str(choice_value)] = choice_label
         
         return options
+
+    @property
+    def selected_values(self) -> set[str]:
+        """Normalized selected values for select widgets"""
+        if not self.bound_field:
+            return set()
+
+        raw_value = self.bound_field.value()
+
+        if raw_value is None:
+            return set()
+
+        if isinstance(raw_value, (list, tuple, set)):
+            return {str(value) for value in raw_value if value is not None}
+
+        return {str(raw_value)}
 
     @property
     def render_formular(self) -> bool:

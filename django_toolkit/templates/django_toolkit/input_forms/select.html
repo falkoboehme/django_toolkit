@@ -14,7 +14,7 @@
     {% endif %}
 
     {% for value, display in row.select_data.items %}
-        {% if row.field.value == value or value in row.field.value %}
+        {% if value in row.selected_values %}
             <option value="{{ value }}" selected>{{ display }}</option>
         {% else %}
             <option value="{{ value }}">{{ display }}</option>

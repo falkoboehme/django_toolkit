@@ -1,0 +1,22 @@
+{% extends 'django_toolkit/base/layout.html' %}
+{% load django_tables2 %}
+{% load i18n l10n %}
+{% load static %}
+
+
+{% block content-header %}
+    {% include 'django_toolkit/includes/content-header.html' %}
+{% endblock content-header %}
+
+
+{% block content %}
+    <div class="tab-content" id="listViewTabsContent">
+        {% for tab in tabs %}
+            <div class="tab-pane fade{% if tab.is_active %} show active{% endif %}" id="{% if tab.target_id %}{{ tab.target_id }}{% else %}{{ tab.key }}-panel{% endif %}" role="tabpanel" aria-labelledby="{% if tab.id %}{{ tab.id }}{% else %}{{ tab.key }}-tab{% endif %}" tabindex="0">
+                {% if tab.template %}
+                    {% include tab.template %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock content %}

@@ -16,7 +16,7 @@ class DTContextMixin:
 
     def dt_context(self, request, instance=None):
         self._add_context(self.global_context, request, instance)
-        # self._add_context(self.default_context, request, instance)
+        self._add_context(self.default_context, request, instance)
         self._add_context(self.menu_context, request, instance)
         self._add_context(self.footer_context, request, instance)
         return self._context
@@ -29,15 +29,14 @@ class DTContextMixin:
         }
 
 
-    # def default_context(self, request, instance=None):
-    #     return {
-    #         'page_title': settings.DJANGO_FAST_DEV_PROJECT_NAME,
-    #         'breadcrumbs': None,
-    #         'object_identifier': None,
-    #         'content_title': None,
-    #         'content_subtitle': None,
-    #         'control_buttons': None,
-    #     }
+    def default_context(self, request, instance=None):
+        return {
+            'page_title': settings.DT_PROJECT_NAME,
+            'breadcrumbs': 'breadcrumbs',
+            'object_identifier': 'object_identifier',
+            'content_title': 'content_title',
+            'content_subtitle': 'content_subtitle',
+        }
     
 
     def menu_context(self, request, instance=None):

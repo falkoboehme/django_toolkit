@@ -1,0 +1,35 @@
+{% if tabs %}
+    <!-- Tabs start-->
+    <ul class="nav nav-tabs" id="{{ tabs_id|default:'tabs' }}" role="tablist">
+        {% for tab in tabs %}
+            <li class="nav-item" role="presentation">
+                {% if tab.href %}
+                    <a
+                        class="nav-link{% if tab.is_active %} active{% endif %}"
+                        id="{% if tab.id %}{{ tab.id }}{% else %}{{ tab.key }}-tab{% endif %}"
+                        href="{{ tab.href }}"
+                        role="tab"
+                        aria-controls="{% if tab.target_id %}{{ tab.target_id }}{% else %}{{ tab.key }}-panel{% endif %}"
+                        aria-selected="{% if tab.is_active %}true{% else %}false{% endif %}"
+                    >
+                        {{ tab.label }}
+                    </a>
+                {% else %}
+                    <button
+                        class="nav-link{% if tab.is_active %} active{% endif %}"
+                        id="{% if tab.id %}{{ tab.id }}{% else %}{{ tab.key }}-tab{% endif %}"
+                        data-bs-toggle="tab"
+                        data-bs-target="#{% if tab.target_id %}{{ tab.target_id }}{% else %}{{ tab.key }}-panel{% endif %}"
+                        type="button"
+                        role="tab"
+                        aria-controls="{% if tab.target_id %}{{ tab.target_id }}{% else %}{{ tab.key }}-panel{% endif %}"
+                        aria-selected="{% if tab.is_active %}true{% else %}false{% endif %}"
+                    >
+                        {{ tab.label }}
+                    </button>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+    <!-- Tabs end-->
+{% endif %}

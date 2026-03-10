@@ -49,7 +49,7 @@ class DTGroup(DTHistoryChangeLoggingModel):
             ],
             [
                 CardDefinition(
-                    header=_('Comments'),
+                    header=_('Comment'),
                     fields=['comment']
                 ),
                 CardDefinition(

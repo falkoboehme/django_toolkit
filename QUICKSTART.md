@@ -80,6 +80,8 @@ if DEBUG:
 DT_PROJECT_NAME = config('DT_PROJECT_NAME', default='My Project', cast=str)
 DT_PROJECT_VERSION = config('DT_PROJECT_VERSION', default='0.1', cast=str)
 DT_DISPLAY_NONE = config('DT_DISPLAY_NONE', default='—', cast=str)
+DT_FORM_TEXTAREA_SIZE = config('DT_FORM_TEXTAREA_SIZE', default=4, cast=int)
+DT_FORM_SELECT_MULTIPLE_SIZE = config('DT_FORM_SELECT_MULTIPLE_SIZE', default=4, cast=int)
 
 DT_LOGIN_REQUIRED = config('DT_LOGIN_REQUIRED', default=True, cast=bool)
 
@@ -105,6 +107,49 @@ TIME_FORMAT = config('DT_TIME_FORMAT', default='H:i:s', cast=str)
 # Wichtig für eigenes Group-Modell
 DT_GROUP_RELATED_NAME_FOR_PERMISSION = config('DT_GROUP_RELATED_NAME_FOR_PERMISSION', default='dtgroup', cast=str)
 ```
+
+#### Textarea-Größe global + individuell
+
+- Globaler Standard für alle Textareas:
+
+```python
+DT_FORM_TEXTAREA_SIZE = config('DT_FORM_TEXTAREA_SIZE', default=2, cast=int)
+```
+
+- Globaler Standard für ManyToMany-/Multi-Select-Felder:
+
+```python
+DT_FORM_SELECT_MULTIPLE_SIZE = config('DT_FORM_SELECT_MULTIPLE_SIZE', default=4, cast=int)
+```
+
+- Individuell pro Feld direkt in `CardDefinition.fields` (String bleibt Standard):
+
+```python
+CardDefinition(
+    header='Kommentar',
+    fields=[
+        'title',
+        {'name': 'comment', 'rows': 6},
+    ],
+)
+```
+
+- Falls zusätzlich im Formular `widget.attrs['rows']` gesetzt wird, hat dieser Wert Vorrang.
+
+- ManyToMany-/Multi-Select-Größe (sichtbare Zeilen) pro Feld:
+
+```python
+CardDefinition(
+    header='Zuordnungen',
+    fields=[
+        {'name': 'groups', 'size': 8},
+        # alternativ explizit:
+        {'name': 'permissions', 'many_to_many_rows': 12},
+    ],
+)
+```
+
+- Priorität bei ManyToMany-/Multi-Select: Feldkonfiguration (`size` / `many_to_many_rows`) → `widget.attrs['size']` → `DT_FORM_SELECT_MULTIPLE_SIZE`.
 
 ### 2.3 INSTALLED_APPS
 

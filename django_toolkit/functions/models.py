@@ -22,6 +22,10 @@ def get_model_url(model):
     return f"{model._meta.model_name}s"
 
 
+def get_model_base_url(model) -> str:
+    return str(getattr(model._meta, "base_url", model._meta.model_name)).lower()
+
+
 def get_app_modelname_id(obj):
     """returns the app_label, model_name and id of an object"""
     if hasattr(obj._meta, "model"):
@@ -115,20 +119,41 @@ def get_user_apps_with_models():
 
 def get_fields_of_model(model, selector="all"):
     """returns all fields, which are defined in the cards attribute of the model Meta class. Can be filted using the selector"""
+    def get_field_name(field_entry):
+        if isinstance(field_entry, str):
+            return field_entry
+
+        if isinstance(field_entry, dict):
+            field_name = field_entry.get("name")
+            if isinstance(field_name, str) and field_name:
+                return field_name
+            raise Exception(f"Invalid card field definition: {field_entry}. Dict entries must include a non-empty 'name'.")
+
+        field_name = getattr(field_entry, "name", None)
+        if isinstance(field_name, str) and field_name:
+            return field_name
+
+        raise Exception(
+            f"Unsupported card field definition '{field_entry}'. Use a string field name or an object/dict with a 'name'."
+        )
+
     fields = []
     if hasattr(model._meta, "cards"):
         for card_col in model._meta.cards:
             for card in card_col:
                 if selector == "all":
-                    fields.extend(card.fields)
+                    for field_entry in card.fields:
+                        fields.append(get_field_name(field_entry))
                 elif selector == "ro":
-                    for field in card.fields:
-                        if field in card.ro_fields:
-                            fields.append(field)
+                    for field_entry in card.fields:
+                        field_name = get_field_name(field_entry)
+                        if field_name in card.ro_fields:
+                            fields.append(field_name)
                 elif selector == "rw":
-                    for field in card.fields:
-                        if field not in card.ro_fields:
-                            fields.append(field)
+                    for field_entry in card.fields:
+                        field_name = get_field_name(field_entry)
+                        if field_name not in card.ro_fields:
+                            fields.append(field_name)
                 else:
                     raise Exception(
                         f"Selector '{selector}' unknown in get_fields_of_model"
@@ -154,9 +179,10 @@ def get_related_name_from_field(field):
 
 
 def get_model_operation_name(model: models.Model, operation: str) -> str:
-    """Create a URL name based on model name and operation (e.g. 'user.list' or 'user.create')"""
+    """Create a URL name based on base_url and operation (e.g. 'users.list' or 'users.create')."""
     assert operation in ALL_OPERATIONS, f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
-    return f"{model._meta.model_name.lower()}.{operation}"  # type: ignore
+    base_url = get_model_base_url(model)
+    return f"{base_url}.{operation}"  # type: ignore
 
 
 def get_model_permission_name(model: models.Model, perm: str) -> str:

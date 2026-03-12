@@ -100,6 +100,7 @@ class DTUser(PermissionsMixin, DTHistoryChangeLoggingModel, AbstractBaseUser):
     class Meta(DTHistoryChangeLoggingModel.Meta):
         abstract = True
         ordering = ['email',]
+        global_search_fields = ['email', 'comment']
         verbose_name = _('User')
         verbose_name_plural = _('Users')
         base_url = 'users'

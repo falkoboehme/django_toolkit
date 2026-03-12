@@ -3,6 +3,7 @@ API URL Creator Mixin for ModelAutoCreator
 """
 
 from ..functions.files import insert_lines_in_file, insert_line_in_file, create_file
+from ..functions.models import get_model_base_url
 from .functions import get_comment_header
 
 class APIURLCreatorMixin:
@@ -119,11 +120,12 @@ class APIURLCreatorMixin:
         # Add Model endpoint imports
         for model_name, model_info in self._registry[app_label].items():
             if model_info.get("create_api_urls"):
+                base_url = get_model_base_url(model_info["model_class"])
                 file = insert_line_in_file(
                     file_path=app_api_urls_path,
                     anchor="urlpatterns = router.urls",
-                    line_to_insert=f"router.register('{model_name.lower()}s', {model_name}ViewSet, basename='{model_name.lower()}')",
-                    check_string=f"'{model_name.lower()}s'",
+                    line_to_insert=f"router.register('{base_url}', {model_name}ViewSet, basename='{base_url}')",
+                    check_string=f"basename='{base_url}'",
                     position="before",
                 )
                 files.add(file) if file else None

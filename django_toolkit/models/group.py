@@ -37,6 +37,7 @@ class DTGroup(DTHistoryChangeLoggingModel):
     class Meta(DTHistoryChangeLoggingModel.Meta):
         abstract = True
         ordering = ['name',]
+        global_search_fields = ['name', 'comment']
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
         base_url = 'group'

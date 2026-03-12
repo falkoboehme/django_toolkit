@@ -47,7 +47,8 @@ class CardTemplate:
         self._form = form
         self._instance = instance
         self._request = request
-        self._fields = card_definition.fields or []
+        self._field_definitions = card_definition.field_definitions
+        self._fields = [field_definition.name for field_definition in self._field_definitions]
         self._ro_fields = card_definition.ro_fields or []
         self._rows = prebuilt_rows
         self.ajax_js = ajax_js
@@ -70,7 +71,9 @@ class CardTemplate:
             return self._rows
 
         generated_rows: list[CardRow] = []
-        for field_name in self._fields:
+        for field_definition in self._field_definitions:
+            field_name = field_definition.name
+            row_kwargs = field_definition.row_kwargs
             is_read_only = field_name in self._ro_fields
 
             if self._form is not None and field_name in self._form.fields and not is_read_only:
@@ -78,6 +81,7 @@ class CardTemplate:
                     CardRow(
                         bound_field=self._form[field_name],
                         request=self._request,
+                        **row_kwargs,
                     )
                 )
                 continue
@@ -94,6 +98,7 @@ class CardTemplate:
                         field=field,
                         field_name=field_name,
                         request=self._request,
+                        **row_kwargs,
                     )
                 )
 

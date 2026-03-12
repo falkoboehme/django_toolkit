@@ -96,8 +96,6 @@ class URLCreatorMixin:
                     file_path=app_urls_path,
                     anchor="urlpatterns = [",
                     lines_to_insert=self._get_model_url_paths(model_info),
-                    check_as_block=True,
-                    skip_if_any_exists=True,
                 )
                 files.add(file) if file else None
         return files
@@ -109,7 +107,6 @@ class URLCreatorMixin:
         model_class = model_info["model_class"]
         header = get_comment_header(model_class.__name__)
 
-        lines.append(f"")
         lines.append(f"    {header}")
         is_read_only = bool(getattr(model_class._meta, "read_only", False))
         operations = (

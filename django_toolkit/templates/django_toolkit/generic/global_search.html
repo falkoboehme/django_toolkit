@@ -1,0 +1,35 @@
+{% extends 'django_toolkit/base/layout.html' %}
+{% load i18n %}
+
+{% block content-header %}
+    {% include 'django_toolkit/includes/content-header.html' %}
+{% endblock content-header %}
+
+{% block content %}
+    {% if not search_query %}
+        <div class="dt-card">
+            <div class="dt-card-body">
+                <p class="mb-0 text-muted">{% trans 'Please enter a search term.' %}</p>
+            </div>
+        </div>
+    {% elif search_results_by_model %}
+        {% for model_results in search_results_by_model %}
+            <section class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                    <h5 class="mb-0">
+                        <a href="{{ model_results.list_url }}">{{ model_results.title }}</a>
+                        <small class="text-muted">({{ model_results.total_count }})</small>
+                    </h5>
+                </div>
+
+                {% include 'django_toolkit/includes/table.html' with table=model_results.table %}
+            </section>
+        {% endfor %}
+    {% else %}
+        <div class="dt-card">
+            <div class="dt-card-body">
+                <p class="mb-0 text-muted">{% blocktrans with query=search_query %}No results found for "{{ query }}".{% endblocktrans %}</p>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}

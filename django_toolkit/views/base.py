@@ -38,7 +38,7 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
                         raise TypeError(
                             f"Meta.cards must contain CardDefinition objects, got {type(card_config).__name__}"
                         )
-                    all_fields_are_read_only = set(card_config.fields) == set(card_config.ro_fields)
+                    all_fields_are_read_only = card_config.is_read_only
                     # print(f"Processing card: {card_config}, all_fields_are_read_only={all_fields_are_read_only}, include_read_only_cards={include_read_only_cards}")
                     is_placeholder = not include_read_only_cards and all_fields_are_read_only
                     card = CardTemplate(

@@ -82,7 +82,20 @@ class CardRow:
         
         # Handle ManyToMany and related fields with links
         if raw_value is not None and hasattr(raw_value, 'all'):
-            return mark_safe("<br>".join([generate_link_to_obj(item, user) for item in raw_value.all()]))   # type: ignore
+            through_model = getattr(raw_value, 'through', None)
+            is_explicit_through = bool(
+                through_model is not None
+                and hasattr(through_model, '_meta')
+                and not getattr(through_model._meta, 'auto_created', True)
+            )
+
+            if is_explicit_through and through_model is not None and self.model_instance is not None:
+                source_field_name = getattr(raw_value, 'source_field_name', None)
+                if isinstance(source_field_name, str) and source_field_name:
+                    through_items = through_model.objects.filter(**{source_field_name: self.model_instance})    # type: ignore
+                    return mark_safe("<br>".join([generate_link_to_obj(item, user) for item in through_items]))
+
+            return mark_safe("<br>".join([generate_link_to_obj(item, user) for item in raw_value.all()])) 
 
         if callable(raw_value):
             raw_value = raw_value()
@@ -171,13 +184,54 @@ class CardRow:
         """Whether field allows multiple selections"""
         if self.bound_field:
             widget = self.bound_field.field.widget
-            return hasattr(widget, 'allow_multiple_selected') and widget.allow_multiple_selected
+            return bool(getattr(widget, 'allow_multiple_selected', False))
         return False
     
     @property
-    def size(self) -> str:
-        """Size attribute for select fields"""
-        return ""
+    def size(self) -> int | str:
+        """Size attribute for multiple select fields (e.g. ManyToMany)."""
+        if not self.bound_field or not self.multiple:
+            return ""
+
+        configured_size = getattr(self, 'select_size_override', None)
+        if configured_size is not None:
+            size = self._to_positive_int(configured_size, 0)
+            return size if size > 0 else ""
+
+        widget_size = getattr(self.bound_field.field.widget, 'attrs', {}).get('size')
+        if widget_size is not None:
+            size = self._to_positive_int(widget_size, 0)
+            return size if size > 0 else ""
+
+        global_size = self._to_positive_int(
+            getattr(settings, 'DT_FORM_SELECT_MULTIPLE_SIZE', 0),
+            0,
+        )
+        return global_size if global_size > 0 else ""
+
+    @staticmethod
+    def _to_positive_int(value, fallback: int) -> int:
+        try:
+            parsed = int(value)
+            return parsed if parsed > 0 else fallback
+        except (TypeError, ValueError):
+            return fallback
+
+
+    @property
+    def textarea_rows(self) -> int:
+        """Number of rows for textarea widgets."""
+        fallback_rows = 2
+        global_rows = self._to_positive_int(
+            getattr(settings, 'DT_FORM_TEXTAREA_SIZE', fallback_rows),
+            fallback_rows,
+        )
+
+        configured_rows = getattr(self, 'textarea_rows_override', None)
+        if configured_rows is None:
+            return global_rows
+
+        return self._to_positive_int(configured_rows, global_rows)
     
     @property
     def select_data(self) -> dict:
@@ -192,9 +246,14 @@ class CardRow:
         raw_value = self.bound_field.value()
         
         # Handle optgroups
-        if hasattr(widget, 'optgroups'):
+        optgroups_function = getattr(widget, 'optgroups', None)
+        if callable(optgroups_function):
             try:
-                for optgroup_name, optgroup_options, optgroup_index in widget.optgroups(self.name, raw_value, {}):
+                optgroups = optgroups_function(self.name, raw_value, {})
+                if not isinstance(optgroups, (list, tuple)):
+                    optgroups = []
+
+                for optgroup_name, optgroup_options, optgroup_index in optgroups:
                     for option in optgroup_options:
                         if isinstance(option, dict):
                             option_value = option.get('value')

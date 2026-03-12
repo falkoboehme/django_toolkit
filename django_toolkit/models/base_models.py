@@ -20,6 +20,7 @@ class DTBaseModel(models.Model):
         'history',          # Track changes of the model
         'read_only',        # Allow only read access
         'base_url',         # Base URL for the model (e.g. 'users')
+        'global_search_fields',
         'cards',            # List of cards to display in detail view (list of columns with list of cards)
                             # cards = [
                             #     [  # Column 0
@@ -50,15 +51,16 @@ class DTBaseModel(models.Model):
         abstract = True
         history = False
         read_only = False
+        global_search_fields = ()
 
     objects = DTModelManager()
     
 
     def get_absolute_url(self):
         """Return the absolute URL for this model instance"""
+        app_label = self._meta.app_label
         base_url = getattr(self._meta, 'base_url', self._meta.model_name)
-        url_name = f'{self._meta.app_label}:{base_url}.detail'
-        return reverse(url_name, args=[self.pk])
+        return reverse(f'{app_label}:{base_url}.detail', args=[self.pk])
 
     
 class DTReadOnlyModel(DTBaseModel):
@@ -104,6 +106,7 @@ class DTEnumModel(DTHistoryChangeLoggingModel):
     class Meta(DTHistoryChangeLoggingModel.Meta):
         abstract = True
         ordering = ['name',]
+        global_search_fields = ['name']
         cards = [
             [
                 CardDefinition(

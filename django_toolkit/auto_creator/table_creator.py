@@ -1,6 +1,7 @@
 from typing import Dict
 from pathlib import Path
 from django_toolkit.functions.files import insert_line_in_file, create_file
+from django_toolkit.functions.models import get_model_operation_name
 from .functions import get_table_class_name
 
 
@@ -49,7 +50,7 @@ class TableCreatorMixin:
             f"from {model_info['app_label']}.models import {model_class.__name__}\n"
         )
         field_list = [f.name for f in model_class._meta.fields]
-        view_detail = f"{model_info['app_label']}:{model_class.__name__.lower()}.detail"
+        view_detail = f"{model_info['app_label']}:{get_model_operation_name(model_class, 'detail')}"
         lines += f"\n\n"
         lines += f"class {get_table_class_name(model_class.__name__)}(DTModelTable):\n"
         lines += f"    class Meta(DTModelTable.Meta):\n"

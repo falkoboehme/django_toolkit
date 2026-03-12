@@ -1,6 +1,6 @@
 {% if row.render_formular and not card.read_only %}
     {# Create a form for changing/adding #}
-    <textarea name="{{ row.name }}" class="form-control" id="{{ row.id }}" rows="{{ row.rows }}">{% if row.value %}{{ row.value }}{% endif %}</textarea>
+    <textarea name="{{ row.name }}" class="form-control" id="{{ row.id }}" rows="{{ row.textarea_rows }}">{% if row.value %}{{ row.value }}{% endif %}</textarea>
 {% else %}
     {# Just display the value #}
     <output id="{{ row.id }}">

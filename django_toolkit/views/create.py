@@ -36,16 +36,12 @@ class DTCreateView(DTViewMixins, CreateView):
             include_read_only_cards=False,
         ))
         context['content_title'] = f"{_('Create a new')} {self.model._meta.verbose_name}"
-        context['form_buttons'] = self.get_form_buttons()
-        return context
-
-
-    def get_form_buttons(self) -> list[Button]:
-        return [
+        context['form_buttons'] = [
             form_button_cancel(get_app_model_url(self.model)),
             form_button_reset(),
             form_button_create()
         ]
+        return context
     
 
     def form_valid(self, form):

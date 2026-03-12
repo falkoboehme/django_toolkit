@@ -5,6 +5,7 @@ from .update import DTUpdateView
 from .delete import DTDeleteView
 from .login_logout import UserLoginView, UserLogoutView
 from .home import HomeView
+from .search import GlobalSearchView
 
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     'UserLoginView',
     'UserLogoutView',
     'HomeView',
+    'GlobalSearchView',
 ]

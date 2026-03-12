@@ -28,6 +28,8 @@ class SettingsCreatorMixin:
         f"DT_USER_BASED_QUERYSET_CLASS = config('DT_USER_BASED_QUERYSET_CLASS', default='{project_name}.request_based_queryset.ProjectRequestBasedQueryset', cast=str)",
         "DT_USER_BASED_QUERYSET_DEFAULT = config('DT_USER_BASED_QUERYSET_DEFAULT', default='none', cast=str)",
         "DT_DISPLAY_NONE = config('DT_DISPLAY_NONE', default='—', cast=str)",
+        "DT_FORM_TEXTAREA_SIZE = config('DT_FORM_TEXTAREA_SIZE', default=4, cast=int)",
+        "DT_FORM_SELECT_MULTIPLE_SIZE = config('DT_FORM_SELECT_MULTIPLE_SIZE', default=8, cast=int)",
         "DT_ITEMS_PER_PAGE_MAX = config('DT_ITEMS_PER_PAGE_MAX', default=100, cast=int)",
         "DT_ITEMS_PER_PAGE_DEFAULT = config('DT_ITEMS_PER_PAGE_DEFAULT', default=25, cast=int)",
         "DT_GROUP_RELATED_NAME_FOR_PERMISSION = config('DT_GROUP_RELATED_NAME_FOR_PERMISSION', default='dtgroup', cast=str)",

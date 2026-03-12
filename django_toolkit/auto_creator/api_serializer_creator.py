@@ -5,6 +5,7 @@ API Serializer Creator Mixin for ModelAutoCreator
 from pathlib import Path
 
 from django_toolkit.functions.files import create_file
+from django_toolkit.functions.models import get_model_base_url
 
 
 class APISerializerCreatorMixin:
@@ -53,6 +54,7 @@ class APISerializerCreatorMixin:
 		model_name = model_info["model_name"]
 		app_label = model_info["app_label"]
 		model_class = model_info["model_class"]
+		base_url = get_model_base_url(model_class)
 		is_read_only = bool(getattr(model_class._meta, "read_only", False))
 		read_only_fields_line = ""
 		if is_read_only:
@@ -66,7 +68,7 @@ class APISerializerCreatorMixin:
 			"\n"
 			"\n"
 			f"class {model_name}Serializer(DTAPISerializer):\n"
-			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{model_name.lower()}-detail')\n"
+			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{base_url}-detail')\n"
 			"\n"
 			"    class Meta(DTAPISerializer.Meta):\n"
 			f"        model = {model_name}\n"

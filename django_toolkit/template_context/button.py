@@ -79,6 +79,15 @@ def form_button_update():
     )
 
 
+def form_button_save():
+    return Button(
+        name=_("Save"),
+        href='#',
+        color='blue',
+        attr=mark_safe('type="submit"'),
+    )
+
+
 class Button(BaseComponent):
     """
     Class to define a nice a-Tag with the look of a button

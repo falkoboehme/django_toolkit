@@ -216,6 +216,13 @@ body.dt-app {
     justify-content: center;
 }
 
+.dt-top-search-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    display: block;
+    filter: brightness(0) invert(1);
+}
+
 .dt-header-profile {
     display: flex;
     align-items: center;

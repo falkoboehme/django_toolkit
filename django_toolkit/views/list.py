@@ -10,6 +10,7 @@ from ..functions.permissions import (
     get_perm_action_from_operation,
     user_has_model_perms,
 )
+from ..template_context.card_definition import normalize_card_field
 from ..template_context.button import control_button_create
 
 
@@ -185,13 +186,23 @@ class DTListView(DTViewMixins, ListView):
                 if not configured_fields:
                     continue
 
+                configured_field_names: list[str] = []
+                for configured_field in configured_fields:
+                    try:
+                        configured_field_names.append(normalize_card_field(configured_field).name)
+                    except ValueError:
+                        continue
+
+                if not configured_field_names:
+                    continue
+
                 card_fields = [
                     fields_by_name[field_name]
-                    for field_name in configured_fields
+                    for field_name in configured_field_names
                     if field_name in fields_by_name
                 ]
 
-                for field_name in configured_fields:
+                for field_name in configured_field_names:
                     if field_name in fields_by_name:
                         used_field_names.add(field_name)
 

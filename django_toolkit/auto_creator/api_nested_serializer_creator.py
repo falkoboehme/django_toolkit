@@ -5,6 +5,7 @@ API Nested Serializer Creator Mixin for ModelAutoCreator
 from pathlib import Path
 
 from django_toolkit.functions.files import create_file
+from django_toolkit.functions.models import get_model_base_url
 
 
 class APINestedSerializerCreatorMixin:
@@ -53,6 +54,7 @@ class APINestedSerializerCreatorMixin:
 		model_name = model_info["model_name"]
 		app_label = model_info["app_label"]
 		model_class = model_info["model_class"]
+		base_url = get_model_base_url(model_class)
 		field_names = {field.name for field in model_class._meta.fields}
 		nested_fields = ["'id'", "'url'", "'display'"]
 		if "name" in field_names:
@@ -65,7 +67,7 @@ class APINestedSerializerCreatorMixin:
 			"\n"
 			"\n"
 			f"class Nested{model_name}Serializer(DTAPINestedSerializer):\n"
-			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{model_name.lower()}-detail')\n"
+			f"    url = serializers.HyperlinkedIdentityField(view_name='{app_label}-api:{base_url}-detail')\n"
 			"\n"
 			"    class Meta:\n"
 			f"        model = {model_name}\n"

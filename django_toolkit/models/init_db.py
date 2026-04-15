@@ -1,5 +1,6 @@
 import copy
 import shutil
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -48,6 +49,8 @@ class InitDB:
         self.class_name = class_name
         self.data = data
         self.user_model = get_user_model()
+        self.created = datetime.now()
+        self.created_user = 'init_db_script'
 
 
     def init(self):
@@ -74,6 +77,8 @@ class InitDB:
         new_model_data, m2m_fields = self.extract_m2m_fields(model, model_data)
         # Create new model, but do not save it yet
         model_instance = model()
+        setattr(model_instance, "created", self.created)
+        setattr(model_instance, "created_user", self.created_user)
         for field_name, value in new_model_data.items():
             setattr(model_instance, field_name, value)
         try:

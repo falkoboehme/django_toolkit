@@ -1,0 +1,154 @@
+{% load i18n %}
+
+{% if row.render_formular and not card.read_only %}
+    <select name="{{ row.name }}" id="{{ row.id }}" class="form-control d-none" multiple="multiple">
+    {% for value, display in row.select_data.items %}
+        {% if value in row.selected_values %}
+            <option value="{{ value }}" selected>{{ display }}</option>
+        {% else %}
+            <option value="{{ value }}">{{ display }}</option>
+        {% endif %}
+    {% endfor %}
+    </select>
+
+    <div class="dt-m2m-admin-widget" id="{{ row.id }}_widget">
+        <div class="row g-2 align-items-start">
+            <div class="col-md-5">
+                <label for="{{ row.id }}_available" class="form-label mb-1">{% trans "Available" %}</label>
+                <input
+                    type="search"
+                    id="{{ row.id }}_available_search"
+                    class="form-control form-control-sm mb-2"
+                    placeholder="{% trans 'Search' %}"
+                    autocomplete="off"
+                >
+                <select id="{{ row.id }}_available" class="form-control" size="{{ row.size|default:10 }}" multiple="multiple"></select>
+            </div>
+
+            <div class="col-md-2 d-flex align-items-center justify-content-center">
+                <div class="d-grid gap-2 dt-m2m-admin-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="{{ row.id }}_add" aria-label="{% trans 'Add selection' %}">&gt;</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="{{ row.id }}_remove" aria-label="{% trans 'Remove selection' %}">&lt;</button>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <label for="{{ row.id }}_selected" class="form-label mb-1">{% trans "Selected" %}</label>
+                <input
+                    type="search"
+                    id="{{ row.id }}_selected_search"
+                    class="form-control form-control-sm mb-2"
+                    placeholder="{% trans 'Search' %}"
+                    autocomplete="off"
+                >
+                <select id="{{ row.id }}_selected" class="form-control" size="{{ row.size|default:10 }}" multiple="multiple"></select>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        (function() {
+            const hiddenSelect = document.getElementById('{{ row.id|escapejs }}');
+            const availableSelect = document.getElementById('{{ row.id|escapejs }}_available');
+            const selectedSelect = document.getElementById('{{ row.id|escapejs }}_selected');
+            const availableSearch = document.getElementById('{{ row.id|escapejs }}_available_search');
+            const selectedSearch = document.getElementById('{{ row.id|escapejs }}_selected_search');
+            const addButton = document.getElementById('{{ row.id|escapejs }}_add');
+            const removeButton = document.getElementById('{{ row.id|escapejs }}_remove');
+
+            if (!hiddenSelect || !availableSelect || !selectedSelect || !addButton || !removeButton) {
+                return;
+            }
+
+            function createOption(value, text) {
+                const option = document.createElement('option');
+                option.value = value;
+                option.text = text;
+                return option;
+            }
+
+            function applyFilter(selectElement, query) {
+                const normalizedQuery = String(query || '').trim().toLowerCase();
+                Array.from(selectElement.options).forEach(function(option) {
+                    option.hidden = normalizedQuery !== ''
+                        && !String(option.text).toLowerCase().includes(normalizedQuery);
+                });
+            }
+
+            function refreshFilters() {
+                applyFilter(availableSelect, availableSearch ? availableSearch.value : '');
+                applyFilter(selectedSelect, selectedSearch ? selectedSearch.value : '');
+            }
+
+            function syncHiddenSelect() {
+                hiddenSelect.innerHTML = '';
+
+                Array.from(availableSelect.options).forEach(function(option) {
+                    hiddenSelect.add(new Option(option.text, option.value, false, false));
+                });
+
+                Array.from(selectedSelect.options).forEach(function(option) {
+                    hiddenSelect.add(new Option(option.text, option.value, true, true));
+                });
+            }
+
+            function moveSelectedOptions(fromSelect, toSelect) {
+                const optionsToMove = Array.from(fromSelect.selectedOptions);
+                optionsToMove.forEach(function(option) {
+                    option.selected = false;
+                    toSelect.appendChild(option);
+                });
+                refreshFilters();
+                syncHiddenSelect();
+            }
+
+            Array.from(hiddenSelect.options).forEach(function(option) {
+                const target = option.selected ? selectedSelect : availableSelect;
+                target.appendChild(createOption(option.value, option.text));
+            });
+
+            addButton.addEventListener('click', function() {
+                moveSelectedOptions(availableSelect, selectedSelect);
+            });
+
+            removeButton.addEventListener('click', function() {
+                moveSelectedOptions(selectedSelect, availableSelect);
+            });
+
+            availableSelect.addEventListener('dblclick', function() {
+                moveSelectedOptions(availableSelect, selectedSelect);
+            });
+
+            selectedSelect.addEventListener('dblclick', function() {
+                moveSelectedOptions(selectedSelect, availableSelect);
+            });
+
+            if (availableSearch) {
+                availableSearch.addEventListener('input', function(event) {
+                    applyFilter(availableSelect, event.target.value);
+                });
+            }
+
+            if (selectedSearch) {
+                selectedSearch.addEventListener('input', function(event) {
+                    applyFilter(selectedSelect, event.target.value);
+                });
+            }
+
+            const parentForm = hiddenSelect.closest('form');
+            if (parentForm) {
+                parentForm.addEventListener('submit', syncHiddenSelect);
+            }
+
+            syncHiddenSelect();
+        })();
+    </script>
+{% else %}
+    <output id="{{ row.id }}">
+        {% if row.value %}
+            {{ row.value }}
+        {% else %}
+            {{ global_none }}
+        {% endif %}
+    </output>
+{% endif %}

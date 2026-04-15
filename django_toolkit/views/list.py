@@ -34,7 +34,7 @@ class DTListView(DTViewMixins, ListView):
         context.update(self._get_filter_cards_context(filter_fields_context))
         context['filter_param_prefix'] = self.filter_param_prefix
         context['tabs'] = self.get_tab_context()
-        context.update(**self.get_control_buttons(self.request, obj=None))
+        context.update(**self.get_control_buttons(self.request, instance=None))
         table = self.get_table()
         if table is not None:
             table.configure(self.request)

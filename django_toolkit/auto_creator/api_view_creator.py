@@ -27,7 +27,7 @@ class APIViewCreatorMixin:
         lines += f"# RootView of App\n"
         lines += f"class {app_label.capitalize()}RootView(APIRootView):\n"
         lines += f"    \"\"\"{app_label.capitalize()} API root view\"\"\"\n"
-        lines += f"    permission_classes = [IsAuthenticated] if settings.LOGIN_REQUIRED else [AllowAny]\n"
+        lines += f"    permission_classes = [IsAuthenticated] if settings.DT_LOGIN_REQUIRED else [AllowAny]\n"
         lines += f"\n"
         lines += f"    def get_view_name(self):\n"
         lines += f"        return '{app_label.capitalize()}'\n"

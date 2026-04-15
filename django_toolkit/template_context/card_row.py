@@ -1,11 +1,15 @@
+import json
 from django.utils.safestring import mark_safe
 from django.forms import BoundField
 from django.db import models
 from django.conf import settings
 from django.http import HttpRequest
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
+from django.utils.translation import gettext_lazy as _
 from datetime import datetime, date, time
 from ..functions.format import django_format_to_python
-from ..functions.models import generate_link_to_obj
+from ..functions.models import generate_link_to_obj, get_model_base_url
 from ..template_context.icon import icon_false, icon_true
 
 
@@ -160,6 +164,12 @@ class CardRow:
         
         widget = self.bound_field.field.widget
         widget_name = widget.__class__.__name__     # type: ignore
+
+        if widget_name == 'SelectMultiple' and self.admin_many_to_many_enabled:
+            return 'select_admin_m2m'
+
+        if widget_name in {'Select', 'SelectMultiple'} and self.select_search_enabled:
+            return 'select_search'
         
         # Map Django widgets to template names
         widget_map = {
@@ -186,6 +196,107 @@ class CardRow:
             widget = self.bound_field.field.widget
             return bool(getattr(widget, 'allow_multiple_selected', False))
         return False
+
+    @property
+    def many_to_many_widget_mode(self) -> str:
+        """Configured rendering mode for many-to-many relation fields."""
+        configured_mode = getattr(self, 'many_to_many_widget', None)
+        if configured_mode is None:
+            configured_mode = getattr(self, 'm2m_widget', None)
+        if configured_mode is None:
+            configured_mode = getattr(self, 'many_to_many_admin', None)
+
+        if isinstance(configured_mode, bool):
+            return 'admin' if configured_mode else ''
+
+        if configured_mode is None:
+            return ''
+
+        normalized_mode = str(configured_mode).strip().lower()
+        if normalized_mode in {'1', 'true', 'yes'}:
+            return 'admin'
+        return normalized_mode
+
+    @property
+    def admin_many_to_many_enabled(self) -> bool:
+        """Whether the row should render a dual-list admin-style many-to-many input."""
+        if not self.bound_field or not self.multiple:
+            return False
+
+        queryset = getattr(self.bound_field.field, 'queryset', None)
+        if queryset is None or getattr(queryset, 'model', None) is None:
+            return False
+
+        return self.many_to_many_widget_mode in {
+            'admin',
+            'admin-like',
+            'admin_like',
+            'filter_horizontal',
+            'dual',
+            'dual-list',
+            'dual_list',
+        }
+
+    @property
+    def select_search_limit(self) -> int:
+        """Threshold for enabling search on select fields."""
+        return self._to_positive_int(getattr(settings, 'DT_FORM_SELECT_SEARCH_LIMIT', 0), 0)
+
+    @property
+    def select_option_count(self) -> int:
+        """Number of currently rendered options in select_data."""
+        return len(self.select_data)
+
+    @property
+    def select_search_param(self) -> str:
+        """API search parameter name, defaults to 'q'."""
+        rest_framework_settings = getattr(settings, 'REST_FRAMEWORK', {})
+        if isinstance(rest_framework_settings, dict):
+            search_param = rest_framework_settings.get('SEARCH_PARAM', 'q')
+            if isinstance(search_param, str) and search_param:
+                return search_param
+        return 'q'
+
+    @property
+    def select_search_url(self) -> str:
+        """API list endpoint for selectable related model."""
+        if not self.bound_field:
+            return ""
+
+        queryset = getattr(self.bound_field.field, 'queryset', None)
+        related_model = getattr(queryset, 'model', None)
+        if related_model is None:
+            return ""
+
+        app_label = related_model._meta.app_label
+        base_url = get_model_base_url(related_model)
+        try:
+            return reverse(f"{app_label}-api:{base_url}-list")
+        except NoReverseMatch:
+            return ""
+
+    @property
+    def select_search_enabled(self) -> bool:
+        """Whether select should be rendered with ajax-search support."""
+        if not self.bound_field:
+            return False
+
+        if self.admin_many_to_many_enabled:
+            return False
+
+        search_limit = self.select_search_limit
+        if search_limit <= 0:
+            return False
+
+        if self.select_option_count < search_limit:
+            return False
+
+        return bool(self.select_search_url)
+
+    @property
+    def select_search_placeholder(self) -> str:
+        """Localized placeholder for select search input."""
+        return _("Search %(field)s") % {'field': self.display}
     
     @property
     def size(self) -> int | str:
@@ -263,7 +374,7 @@ class CardRow:
                         else:
                             continue
 
-                        if option_value is None:
+                        if option_value in (None, ''):
                             continue
                         options[str(option_value)] = option_label
             except (TypeError, AttributeError, ValueError):
@@ -273,6 +384,8 @@ class CardRow:
         # Fallback to choices if optgroups didn't work
         if not options and hasattr(self.bound_field.field, 'choices'):
             for choice_value, choice_label in self.bound_field.field.choices:
+                if choice_value in (None, ''):
+                    continue
                 options[str(choice_value)] = choice_label
         
         return options
@@ -292,6 +405,11 @@ class CardRow:
             return {str(value) for value in raw_value if value is not None}
 
         return {str(raw_value)}
+
+    @property
+    def selected_values_json(self) -> str:
+        """Selected values as JSON array for client-side scripts."""
+        return json.dumps(sorted(self.selected_values))
 
     @property
     def render_formular(self) -> bool:

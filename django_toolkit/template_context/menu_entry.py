@@ -23,7 +23,7 @@ class MenuEntry:
             add_permission = get_permission_for_model_action(model=model, action="add") in all_user_permissions
             title = model._meta.verbose_name_plural
             url = get_app_model_url(model) if view_permission else None
-            if add_permission:
+            if add_permission and not model._meta.read_only:
                 self.button_add = menu_button_create(model)
         
         self.url = url

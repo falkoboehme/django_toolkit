@@ -1,61 +1,72 @@
 {% if row.render_formular and not card.read_only %}
-    {# Create a form for changing/adding #}
-    <select name="{{ row.name }}" id="{{ row.id }}" class="form-control select2"
+    <input
+        type="search"
+        id="{{ row.id }}_search"
+        class="form-control mb-2"
+        placeholder="{{ row.select_search_placeholder }}"
+        autocomplete="off"
+    >
+
+    <select name="{{ row.name }}" id="{{ row.id }}" class="form-control"
         {% if row.multiple %}
-            multiple="multiple" style="width: 100%"
+            multiple="multiple"
         {% endif %}
         {% if row.size %}
             size="{{ row.size }}"
         {% endif %}
     >
-
-    {% if row.multiple %}
-        {% for value, display in row.select_data.items %}
-            {% if value in row.value %}
-                <option value="{{ value }}" selected>{{ display }}</option>
-            {% else %}
-                <option value="{{ value }}">{{ display }}</option>
-            {% endif %}
-        {% endfor %}
-        <script type="text/javascript">
-            $(document).ready(function() {
-                // initialize Select2 on select field of class 'select2'
-                $('#{{ row.id }}').select2(
-                    {
-                        width: 'resolve'
-                    }
-                );
-            });
-        </script>
-    {% else %}
-        {% if not row.required %}
-            <option value="">{{ global_none }}</option>
-        {% endif %}
-
-        {% for value, display in row.select_data.items %}
-            {% if row.value == value %}
-                <option value="{{ value }}" selected>{{ display }}</option>
-            {% else %}
-                <option value="{{ value }}">{{ display }}</option>
-            {% endif %}
-        {% endfor %}
-        <script type="text/javascript">
-            $(document).ready(function() {
-                // initialize Select2 on select field of class 'select2'
-                $('#{{ row.id }}').select2(
-                    {
-                        theme: 'bootstrap-5',
-                        width: 'style'
-                    }
-                );
-            });
-        </script>
+    {% if not row.required and not row.multiple %}
+        <option value="">{{ global_none }}</option>
     {% endif %}
+
+    {% for value, display in row.select_data.items %}
+        {% if value in row.selected_values %}
+            <option value="{{ value }}" selected>{{ display }}</option>
+        {% else %}
+            <option value="{{ value }}">{{ display }}</option>
+        {% endif %}
+    {% endfor %}
     </select>
 
-    {% if row.multiple %}
-    <br>
-    {% endif %}
+    <script type="text/javascript">
+        (function() {
+            const searchInput = document.getElementById('{{ row.id|escapejs }}_search');
+            const targetSelect = document.getElementById('{{ row.id|escapejs }}');
+            const baseUrl = '{{ row.select_search_url|escapejs }}';
+            const searchParam = '{{ row.select_search_param|escapejs }}';
+            let debounceTimer = null;
+
+            if (!searchInput || !targetSelect || !baseUrl) {
+                return;
+            }
+
+            function buildUrl(query) {
+                const url = new URL(baseUrl, window.location.origin);
+                const normalizedQuery = String(query || '').trim();
+                if (normalizedQuery) {
+                    url.searchParams.set(searchParam, normalizedQuery);
+                }
+                return url.toString();
+            }
+
+            function getSelectedIds() {
+                return Array.from(targetSelect.selectedOptions).map(function(option) {
+                    return String(option.value);
+                });
+            }
+
+            function runSearch(query) {
+                DependencySelectAjax(buildUrl(query), '{{ row.id|escapejs }}', getSelectedIds());
+            }
+
+            searchInput.addEventListener('input', function(event) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function() {
+                    runSearch(event.target.value);
+                }, 250);
+            });
+        })();
+    </script>
 {% else %}
     {# Just display the value #}
     <output id="{{ row.id }}">

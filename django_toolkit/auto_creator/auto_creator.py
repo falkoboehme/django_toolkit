@@ -3,7 +3,7 @@ Auto-Registration System for Django Models
 
 Automatically registers models and generates URLs/Views/Admin
 """
-
+from django.conf import settings
 from django.db import models
 from django_toolkit.functions.files import get_project_name
 from .api_url_creator import APIURLCreatorMixin
@@ -67,59 +67,63 @@ class DTModelAutoCreator(
             raise Exception("Could not determine project name for auto-syncing URLs")
        
         # Auto-create settings (if needed)
-        all_files.update(self._auto_create_stettings())
-
-        # Auto-create Menu (if needed)
-        all_files.update(self._auto_create_menu())
+        # all_files.update(self._auto_create_stettings())
 
         # Auto-create project request_based_queryset.py (if needed)
         all_files.update(self._auto_create_request_based_queryset())
 
-        # Auto-create Tables for each app
-        for app_label in self._registry:
-            files = self._auto_create_app_tables(app_label)
-            all_files.update(files) if files else None
+        if settings.DT_AUTO_CREATE_MENU:
+            # Auto-create Menu (if needed)
+            all_files.update(self._auto_create_menu())
 
-        # Auto-create Views for each app
-        for app_label in self._registry:
-            files = self._auto_create_app_views(app_label)
-            all_files.update(files) if files else None
+        if settings.DT_AUTO_CREATE_VIEWS:
+            # Auto-create Tables for each app
+            for app_label in self._registry:
+                files = self._auto_create_app_tables(app_label)
+                all_files.update(files) if files else None
 
-        # Auto-create Admin for each app
-        for app_label in self._registry:
-            files = self._auto_create_admin(app_label)
-            all_files.update(files) if files else None
+            # Auto-create Views for each app
+            for app_label in self._registry:
+                files = self._auto_create_app_views(app_label)
+                all_files.update(files) if files else None
 
-        # Auto-create URLs for each app
-        for app_label in self._registry:
-            files = self._auto_create_app_urls(app_label)
-            all_files.update(files) if files else None
+            # Auto-create URLs for each app
+            for app_label in self._registry:
+                files = self._auto_create_app_urls(app_label)
+                all_files.update(files) if files else None
+            
+            # Auto-create project-level URLs
+            all_files.update(self._auto_create_project_urls())
+
+        if settings.DT_AUTO_CREATE_ADMIN_AREA:
+            # Auto-create Admin for each app
+            for app_label in self._registry:
+                files = self._auto_create_admin(app_label)
+                all_files.update(files) if files else None
+
+        if settings.DT_AUTO_CREATE_API:
+            # Auto-create API URLs for each app
+            for app_label in self._registry:
+                files = self._auto_create_app_api_urls(app_label)
+                all_files.update(files) if files else None
+
+            # Auto-create API serializers for each app
+            for app_label in self._registry:
+                files = self._auto_create_app_api_serializers(app_label)
+                all_files.update(files) if files else None
+
+            # Auto-create API nested serializers for each app
+            for app_label in self._registry:
+                files = self._auto_create_app_api_nested_serializers(app_label)
+                all_files.update(files) if files else None
+
+            # Auto-create API views for each app
+            for app_label in self._registry:
+                files = self._auto_create_app_api_view(app_label)
+                all_files.update(files) if files else None
         
-        # Auto-create project-level URLs
-        all_files.update(self._auto_create_project_urls())
-
-        # Auto-create project-level API URLs
-        all_files.update(self._auto_create_project_api_urls())
-
-        # Auto-create API URLs for each app
-        for app_label in self._registry:
-            files = self._auto_create_app_api_urls(app_label)
-            all_files.update(files) if files else None
-
-        # Auto-create app-level API serializers for each app
-        for app_label in self._registry:
-            files = self._auto_create_app_api_serializers(app_label)
-            all_files.update(files) if files else None
-
-        # Auto-create app-level API nested serializers for each app
-        for app_label in self._registry:
-            files = self._auto_create_app_api_nested_serializers(app_label)
-            all_files.update(files) if files else None
-
-        # Auto-create app-level API views for each app
-        for app_label in self._registry:
-            files = self._auto_create_app_api_view(app_label)
-            all_files.update(files) if files else None
+            # Auto-create project-level API URLs
+            all_files.update(self._auto_create_project_api_urls())
         
         return all_files
     

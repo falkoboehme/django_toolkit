@@ -82,6 +82,7 @@ DT_PROJECT_VERSION = config('DT_PROJECT_VERSION', default='0.1', cast=str)
 DT_DISPLAY_NONE = config('DT_DISPLAY_NONE', default='—', cast=str)
 DT_FORM_TEXTAREA_SIZE = config('DT_FORM_TEXTAREA_SIZE', default=4, cast=int)
 DT_FORM_SELECT_MULTIPLE_SIZE = config('DT_FORM_SELECT_MULTIPLE_SIZE', default=4, cast=int)
+DT_FORM_SELECT_SEARCH_LIMIT = config('DT_FORM_SELECT_SEARCH_LIMIT', default=20, cast=int)
 
 DT_LOGIN_REQUIRED = config('DT_LOGIN_REQUIRED', default=True, cast=bool)
 
@@ -122,6 +123,12 @@ DT_FORM_TEXTAREA_SIZE = config('DT_FORM_TEXTAREA_SIZE', default=2, cast=int)
 DT_FORM_SELECT_MULTIPLE_SIZE = config('DT_FORM_SELECT_MULTIPLE_SIZE', default=4, cast=int)
 ```
 
+- Ab dieser Anzahl Optionen wird bei Select-Feldern automatisch ein Suchfeld mit Ajax eingeblendet (wenn API-Endpunkt verfügbar):
+
+```python
+DT_FORM_SELECT_SEARCH_LIMIT = config('DT_FORM_SELECT_SEARCH_LIMIT', default=20, cast=int)
+```
+
 - Individuell pro Feld direkt in `CardDefinition.fields` (String bleibt Standard):
 
 ```python
@@ -149,7 +156,21 @@ CardDefinition(
 )
 ```
 
+- Admin-ähnliche ManyToMany-Zuweisung (Dual-List wie im Django-Admin) pro Feld:
+
+```python
+CardDefinition(
+    header='Rechte',
+    fields=[
+        {'name': 'user_permissions', 'many_to_many_widget': 'admin'},
+    ],
+)
+```
+
+- Unterstützte Werte für `many_to_many_widget`: `admin` (empfohlen), `dual`, `dual-list`, `filter_horizontal` oder boolesches `True`.
+
 - Priorität bei ManyToMany-/Multi-Select: Feldkonfiguration (`size` / `many_to_many_rows`) → `widget.attrs['size']` → `DT_FORM_SELECT_MULTIPLE_SIZE`.
+- Ajax-Select-Suche wird verwendet, wenn `Anzahl Optionen >= DT_FORM_SELECT_SEARCH_LIMIT` und ein passender API-List-Endpunkt für das Feld verfügbar ist.
 
 ### 2.3 INSTALLED_APPS
 

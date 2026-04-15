@@ -1,4 +1,6 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
+from django import forms
+from django.conf import settings
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
 from ..models.base_models import DTBaseModel
@@ -25,7 +27,7 @@ class DTView(LoginRequiredMixin, TemplateResponseMixin, ContextMixin, DTContextM
 
 class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponseMixin, ContextMixin, DTContextMixin):
     model = DTBaseModel    # must be set in each ModelView
-    
+   
     def get_card_context(self, request, instance=None, form=None, include_read_only_cards=True) -> dict:
         context = {}
         if hasattr(self.model._meta, "cards"):
@@ -74,16 +76,17 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
         return []
 
 
-    def get_control_buttons(self, request, obj=None) -> dict:
+    def get_control_buttons(self, request, instance=None) -> dict:
         control_buttons = []
-        if obj is not None:
-            if user_has_model_perms(self.request.user, self.model, "change"):   # type: ignore
-                control_buttons.append(control_button_update(obj))
-            if user_has_model_perms(self.request.user, self.model, "delete"):   # type: ignore
-                control_buttons.append(control_button_delete(obj))
-        else:
-            if user_has_model_perms(self.request.user, self.model, "add"):   # type: ignore
-                control_buttons.append(control_button_create(self.model))
+        if not self.model._meta.read_only:  # type: ignore
+            if instance is not None:   
+                if user_has_model_perms(self.request.user, self.model, "change"):   # type: ignore
+                    control_buttons.append(control_button_update(instance))
+                if user_has_model_perms(self.request.user, self.model, "delete"):   # type: ignore
+                    control_buttons.append(control_button_delete(instance))
+            else:
+                if user_has_model_perms(self.request.user, self.model, "add"):   # type: ignore
+                    control_buttons.append(control_button_create(self.model))
         
         return {'control_buttons': control_buttons}
 

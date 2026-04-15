@@ -3,6 +3,8 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from ..template_context.menu_entry import MenuEntry
 from ..template_context.icon import icon_rest_api, icon_swagger_v2, icon_swagger_v3
+from ..functions.request import get_app_model_from_request
+from ..functions.models import get_app_modelname_id
 
 import logging
 log = logging.getLogger("toolkit")
@@ -12,9 +14,9 @@ class DTContextMixin:
     """
     Class to add generic context for each view. For example a dynamic menu.
     """
-    _context = {}
 
     def dt_context(self, request, instance=None):
+        self._context = super().get_context_data() if hasattr(super(), 'get_context_data') else {}  # type: ignore
         self._add_context(self.global_context, request, instance)
         self._add_context(self.default_context, request, instance)
         self._add_context(self.menu_context, request, instance)
@@ -25,17 +27,20 @@ class DTContextMixin:
     def global_context(self, request, instance):
         return {
             'global_project_version': settings.DT_PROJECT_VERSION,
-            'global_none': mark_safe(settings.DT_DISPLAY_NONE),
+            'global_none': mark_safe(str(getattr(settings, 'DT_DISPLAY_NONE', '---'))),
         }
 
 
     def default_context(self, request, instance=None):
         return {
             'page_title': settings.DT_PROJECT_NAME,
-            'breadcrumbs': 'breadcrumbs',
-            'object_identifier': 'object_identifier',
+            # 'breadcrumbs': ' > '.join(filter(None, [
+            #     settings.DT_PROJECT_NAME,
+            # ])),
+            'breadcrumbs': '',
+            'object_identifier': self._get_object_identifier(instance=instance, request=request),
             'content_title': 'content_title',
-            'content_subtitle': 'content_subtitle',
+            'content_subtitle': mark_safe("&nbsp;"),
         }
     
 
@@ -78,8 +83,24 @@ class DTContextMixin:
                         # Compare menu_items (list of classes, __eq__ must be implemented in class)
                         for i, val in enumerate(new_context[key]):
                             if 0 <= i < len(self._context[key]) and val != self._context[key][i]:
-                                log.warning(f"Context key '{key}' already exists, overwriting it with data from {func.__name__} ({new_context[key]})")
+                                log.warning(
+                                    f"Context key '{key}' already exists ({self._context[key]}), "
+                                    f"overwriting it with data from {func.__name__} ({new_context[key]})"
+                                )       
                     else:
-                        log.warning(f"Context key '{key}' already exists, overwriting it with data from {func.__name__} ({new_context[key]})")                
+                        log.warning(
+                            f"Context key '{key}' already exists ({self._context[key]}), "
+                            f"overwriting it with data from {func.__name__} ({new_context[key]})"
+                        )                
         self._context.update(new_context)
 
+
+    def _get_object_identifier(self, instance=None, request=None):
+        if instance:
+            app_label, model_name, obj_id = get_app_modelname_id(instance)
+            return f"{app_label}.{model_name}:{obj_id} ({str(instance)})"
+        elif request:
+            app_label, model_name = get_app_model_from_request(request)
+            if app_label and model_name:
+                return f"{app_label}.{model_name}"
+        return None

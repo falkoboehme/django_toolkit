@@ -30,6 +30,8 @@
                 {% include 'django_toolkit/input_forms/textarea.html' %}
             {% elif row.form == 'select' %}
                 {% include 'django_toolkit/input_forms/select.html' %}
+            {% elif row.form == 'select_admin_m2m' %}
+                {% include 'django_toolkit/input_forms/select_admin_m2m.html' %}
             {% elif row.form == 'select_search' %}
                 {% include 'django_toolkit/input_forms/select_search.html' %}
             {% elif row.form == 'colorfield' %}

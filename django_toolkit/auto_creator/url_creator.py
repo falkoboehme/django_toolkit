@@ -96,6 +96,8 @@ class URLCreatorMixin:
                     file_path=app_urls_path,
                     anchor="urlpatterns = [",
                     lines_to_insert=self._get_model_url_paths(model_info),
+                    check_as_block=False,
+                    skip_if_any_exists=True,
                 )
                 files.add(file) if file else None
         return files

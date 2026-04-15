@@ -1,17 +1,34 @@
 
 function DependencySelectAjax(url, target_id, selected_ids=[]) {
-    fetch(url)
+    const normalizedSelectedIds = selected_ids.map(function(id) {
+        return String(id);
+    });
+
+    const targetSelect = $(`#${target_id}`);
+    const emptyOption = targetSelect.find('option[value=""]').first();
+    const hasEmptyOption = emptyOption.length > 0;
+    const emptyOptionLabel = hasEmptyOption ? emptyOption.text() : '';
+
+    return fetch(url)
         .then(response => response.json())
         .then(data => {
             // clean the target select field
-            $(`#${target_id}`).empty();
+            targetSelect.empty();
+
+            if (hasEmptyOption) {
+                targetSelect.append($('<option>', {
+                    value: '',
+                    text: emptyOptionLabel,
+                    selected: normalizedSelectedIds.includes(''),
+                }));
+            }
 
             // add options to the target select field
             $.each(data.results, function(index, value) {
-                $(`#${target_id}`).append($('<option>', {
+                targetSelect.append($('<option>', {
                     value: value.id,
                     text: value.display,
-                    selected: selected_ids.includes(value.id),
+                    selected: normalizedSelectedIds.includes(String(value.id)),
                 }));
             });
         })

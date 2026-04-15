@@ -1,4 +1,7 @@
 import django_filters
+from django.conf import settings
+from django.core.exceptions import FieldError, ValidationError
+from django.db.models import Q
 
 from rest_framework.filters import OrderingFilter
 from django.db.models.fields import Field
@@ -6,15 +9,101 @@ from django.db.models import Model, QuerySet, OrderBy, F, ForeignKey, OneToOneFi
 from django.db.models.fields import *
 
 from django_toolkit.functions.debug import *
+from django_toolkit.functions.base import to_bool, to_number
 
 
 class FilterSetFactory:
-    char_classes = [CharField, TextField, EmailField]
-    number_classes = [BigAutoField, PositiveBigIntegerField, BigIntegerField, PositiveIntegerField, IntegerField]
-    datetime_classes = [DateTimeField]
+    char_classes = [CharField, TextField, EmailField, SlugField, URLField]
+    number_classes = [
+        BigAutoField,
+        PositiveBigIntegerField,
+        BigIntegerField,
+        PositiveIntegerField,
+        IntegerField,
+        DecimalField,
+        FloatField,
+    ]
+    datetime_classes = [DateTimeField, DateField, TimeField]
     bool_classes = [BooleanField]
     #network_classes = [InetAddressField, CidrAddressField]
     foreinkey_classes = [ForeignKey, OneToOneField]
+
+    @staticmethod
+    def _lookup_is_valid(queryset: QuerySet, lookup: str, value) -> bool:
+        try:
+            queryset.filter(**{lookup: value})
+            return True
+        except (FieldError, ValidationError, TypeError, ValueError):
+            return False 
+
+    @staticmethod
+    def _get_search_param() -> str:
+        rest_framework_settings = getattr(settings, 'REST_FRAMEWORK', {})
+        if isinstance(rest_framework_settings, dict):
+            search_param = rest_framework_settings.get('SEARCH_PARAM', 'q')
+            if isinstance(search_param, str) and search_param.strip():
+                return search_param.strip()
+        return 'q'
+
+    def _build_field_search_lookups(self, field: Field, search_query: str) -> list[tuple[str, object]]:
+        lookups: list[tuple[str, object]] = []
+
+        if field.__class__ in self.char_classes:
+            lookups.append((f"{field.name}__icontains", search_query))
+            return lookups
+
+        if field.__class__ in self.number_classes:
+            parsed_number = to_number(search_query)
+            if parsed_number is not None:
+                lookups.append((field.name, parsed_number))
+            return lookups
+
+        if field.__class__ in self.datetime_classes:
+            lookups.append((field.name, search_query))
+            return lookups
+
+        if field.__class__ in self.bool_classes:
+            parsed_bool = to_bool(search_query)
+            if parsed_bool is not None:
+                lookups.append((field.name, parsed_bool))
+            return lookups
+
+        if field.__class__ in self.foreinkey_classes:
+            parsed_number = to_number(search_query)
+            if parsed_number is not None:
+                lookups.append((f"{field.name}__id", parsed_number))
+
+            remote_model = field.remote_field.model
+            for remote_field in remote_model._meta.fields:
+                if remote_field.__class__ in self.char_classes:
+                    lookups.append((f"{field.name}__{remote_field.name}__icontains", search_query))
+                elif remote_field.__class__ in self.number_classes:
+                    if parsed_number is not None:
+                        lookups.append((f"{field.name}__{remote_field.name}", parsed_number))
+
+            return lookups
+
+        lookups.append((field.name, search_query))
+        return lookups
+
+    def _global_search_filter(self, queryset: QuerySet, model: Model, raw_query: str):
+        if raw_query is None:
+            return queryset
+
+        search_query = str(raw_query).strip()
+        if search_query == "":
+            return queryset
+
+        search_filter = Q()
+        for field in model._meta.fields:
+            for lookup, lookup_value in self._build_field_search_lookups(field, search_query):
+                if self._lookup_is_valid(queryset, lookup, lookup_value):
+                    search_filter |= Q(**{lookup: lookup_value})
+
+        if not search_filter.children:
+            return queryset
+
+        return queryset.filter(search_filter).distinct()
 
     def filterset_class_factory(
             self,
@@ -34,14 +123,24 @@ class FilterSetFactory:
             "fields": []
         }
         
-        attributes = {
+        attributes: dict[str, object] = {
             "id": django_filters.ModelMultipleChoiceFilter(
                 field_name='id',
                 to_field_name='id',
-                #queryset=restrict_queryset_for_user(queryset=model.objects, user=request.user),
                 queryset=model.objects.for_request(request),
             ),
         }
+
+        search_param = self._get_search_param()
+
+        def filter_global_search(filterset_obj, queryset, name, value):
+            return self._global_search_filter(queryset=queryset, model=model, raw_query=value)
+
+        attributes["filter_global_search"] = filter_global_search
+        attributes[search_param] = django_filters.CharFilter(
+            method='filter_global_search',
+            label=search_param,
+        )
 
         for field in model._meta.fields:
             if field.name not in exclude_fields:

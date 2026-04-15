@@ -25,9 +25,9 @@ class DTDetailView(DTViewMixins, DetailView):
     def get_context_data(self, **kwargs):
         obj = self.get_object()
         context = super().get_context_data(**kwargs)
-        context.update(**self.dt_context(self.request))
+        context.update(**self.dt_context(self.request, instance=obj))
         context.update(**self.get_card_context(self.request, instance=obj))
-        context.update(**self.get_control_buttons(self.request, obj=obj))
+        context.update(**self.get_control_buttons(self.request, instance=obj))
         context['content_title'] = str(obj)
         context['modal'] = confirm_delete_modal(obj)
         return context

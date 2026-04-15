@@ -590,6 +590,30 @@ select.form-control:focus {
     box-shadow: 0 0 0 0.15rem var(--dt-focus-ring);
 }
 
+.dt-m2m-admin-widget {
+    margin-top: .2rem;
+}
+
+.dt-m2m-admin-widget select.form-control {
+    min-height: 13rem;
+}
+
+.dt-m2m-admin-actions .btn {
+    min-width: 2.1rem;
+    padding-left: .5rem;
+    padding-right: .5rem;
+}
+
+@media (max-width: 767.98px) {
+    .dt-m2m-admin-actions {
+        width: 100%;
+    }
+
+    .dt-m2m-admin-actions .btn {
+        width: 100%;
+    }
+}
+
 .form-label {
     font-size: .8rem;
     font-weight: 600;
@@ -687,7 +711,7 @@ select.form-control:focus {
 }
 
 .dt-attr-label {
-    width: 34%;
+    width: 20%;
     color: var(--dt-muted);
     font-size: .83rem;
     text-transform: none;
@@ -695,7 +719,7 @@ select.form-control:focus {
 }
 
 .dt-attr-value {
-    width: 66%;
+    width: 80%;
     font-size: .9rem;
 }
 

@@ -1,6 +1,7 @@
 import copy
 import shutil
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -49,8 +50,8 @@ class InitDB:
         self.class_name = class_name
         self.data = data
         self.user_model = get_user_model()
-        self.created = datetime.now()
-        self.created_user = 'init_db_script'
+        self.created = datetime.now(ZoneInfo("Europe/Berlin"))
+        self.created_user = 'init_db script'
 
 
     def init(self):

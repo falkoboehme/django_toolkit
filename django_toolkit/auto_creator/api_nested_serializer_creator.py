@@ -29,7 +29,7 @@ class APINestedSerializerCreatorMixin:
 			nested_serializer_file = create_file(
 				file_path=nested_serializers_dir / f"{model_name.lower()}_nested_serializer.py",
 				content=self._get_model_nested_serializer_content(model_info),
-				overwrite=True,
+				overwrite=False,
 			)
 			files.add(nested_serializer_file) if nested_serializer_file else None
 

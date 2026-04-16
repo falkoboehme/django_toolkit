@@ -46,8 +46,7 @@ class InitDB:
     }
     """
 
-    def __init__(self, class_name, data: dict) -> None:
-        self.class_name = class_name
+    def __init__(self, data: dict) -> None:
         self.data = data
         self.user_model = get_user_model()
         self.created = datetime.now(ZoneInfo("Europe/Berlin"))
@@ -113,6 +112,8 @@ class InitDB:
     def resolve_field(self, field, field_value):
         #print(f"{field} = {field_value}")
         if field.is_relation:
+            if field_value is None:
+                return None
             if field.related_model == Permission:
                 return self.get_permission_ids(field, field_value)
             else:
@@ -169,6 +170,13 @@ class InitDB:
 
     def get_related_instance(self, field, field_value):
         related_model = field.related_model
+
+        # Allow callers to pass a fully resolved related model instance directly.
+        if field_value is None:
+            return None
+        if isinstance(field_value, related_model):
+            return field_value
+
         related_instance = None
         unique_fields = self.get_model_unique_fields(related_model)
         for unique in unique_fields:

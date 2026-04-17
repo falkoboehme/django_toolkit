@@ -94,7 +94,7 @@ def get_user_defined_models():
     return [
         model
         for model in apps.get_models()
-        if model._meta.app_label not in ["admin", "auth", "contenttypes", "sessions"]
+        if model._meta.app_label not in ["admin", "auth", "contenttypes", "sessions", "django_toolkit"]
     ]
 
 

@@ -11,13 +11,13 @@ The toolkit now provides abstract base classes only:
 
 Concrete database models must be defined in the project app (for example `user`):
 
-- `user.models.user_token.DTApiToken`
-- `user.models.user_token.DTApiTokenAllowedCIDR`
+- `user.models.user_token.ApiToken`
+- `user.models.user_token.ApiTokenAllowedCIDR`
 
 Authentication resolves the concrete model dynamically via setting:
 
 - `DT_API_TOKEN_MODEL` (format: `app_label.ModelName`)
-- Example: `user.DTApiToken`
+- Example: `user.ApiToken`
 
 ## Overview
 
@@ -51,7 +51,7 @@ Authentication flow:
 Implementation:
 
 - Authentication class: `django_toolkit.api.authentication.DTApiTokenAuthentication`
-- Default setting in project: `DT_API_TOKEN_MODEL = 'user.DTApiToken'`
+- Default setting in project: `DT_API_TOKEN_MODEL = 'user.ApiToken'`
 
 ## Token Fields
 
@@ -200,7 +200,7 @@ Typical outcomes:
 
 Before testing a request, verify:
 
-- A concrete token model exists (for example `user.DTApiToken`)
+- A concrete token model exists (for example `user.ApiToken`)
 - `DT_API_TOKEN_MODEL` points to the concrete model
 - You still have the raw token
 - Request sends `Authorization: Token <raw_token>`

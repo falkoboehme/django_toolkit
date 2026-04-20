@@ -28,7 +28,7 @@ class AbstractDTApiToken(models.Model):
 
     def __str__(self):
         if hasattr(self, 'user'):
-            return f"{self.name} ({self.user})"
+            return f"{self.name} ({self.user})"     # type: ignore
         return self.name
 
 
@@ -42,6 +42,4 @@ class AbstractDTApiTokenAllowedCIDR(models.Model):
         abstract = True
 
     def __str__(self):
-        if hasattr(self, 'token'):
-            return f"{self.cidr} ({self.token})"
         return str(self.cidr)

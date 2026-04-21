@@ -100,36 +100,78 @@ class DTAPINestedSerializer(BaseSerializer):
     dictionary of attributes which can be used to uniquely identify the related object. This class should be
     subclassed to return a full representation of the related object on read.
     """
-    def to_internal_value(self, data):
 
-        if data is None:
-            return None
-        
-        # Dictionary of related object attributes
-        if isinstance(data, dict):
-            params = dict_to_filter_params(data)
-            queryset = self.Meta.model.objects
+    def _resolve_by_string(self, model, value: str):
+        # 1) Try PK lookup first
+        try:
+            return model.objects.get(pk=value)
+        except ObjectDoesNotExist:
+            pass
+        except (ValueError, TypeError):
+            pass
+        except MultipleObjectsReturned:
+            raise ValidationError(f"Multiple objects match the provided string ID: {value}")
+
+        # 2) Unique fields
+        unique_fields = [
+            f for f in model._meta.get_fields()
+            if hasattr(f, "unique") and f.unique and not getattr(f, "primary_key", False)
+        ]
+        for field in unique_fields:
             try:
-                return queryset.get(**params)
+                return model.objects.get(**{field.name: value})
+            except ObjectDoesNotExist:
+                continue
+            except (MultipleObjectsReturned, ValueError, TypeError):
+                continue
+
+        raise ValidationError(f"Related object not found using the provided value: '{value}'")
+
+    def _resolve_model_instance(self, model, value):
+        if value is None:
+            return None
+
+        if isinstance(value, int):
+            try:
+                return model.objects.get(pk=value)
+            except ObjectDoesNotExist:
+                raise ValidationError(f"Related object not found using the provided numeric ID: {value}")
+
+        if isinstance(value, str):
+            return self._resolve_by_string(model, value)
+
+        if isinstance(value, dict):
+            params = {}
+            for key, val in value.items():
+                try:
+                    field = model._meta.get_field(key)
+                except Exception:
+                    params[key] = val
+                    continue
+
+                is_fk = getattr(field, "is_relation", False) and (
+                    getattr(field, "many_to_one", False) or getattr(field, "one_to_one", False)
+                )
+                if is_fk:
+                    related_model = field.related_model
+                    params[key] = self._resolve_model_instance(related_model, val)
+                else:
+                    params[key] = val
+
+            try:
+                return model.objects.get(**params)
             except ObjectDoesNotExist:
                 raise ValidationError(f"Related object not found using the provided attributes: {params}")
             except MultipleObjectsReturned:
                 raise ValidationError(f"Multiple objects match the provided attributes: {params}")
-            except FieldError as e:
-                raise ValidationError(e)
+            except (FieldError, ValueError, TypeError) as e:
+                raise ValidationError(str(e))
 
-        # Integer PK of related object
-        try:
-            # Cast as integer in case a PK was mistakenly sent as a string
-            pk = int(data)
-        except (TypeError, ValueError):
-            raise ValidationError(
-                f"Related objects must be referenced by numeric ID or by dictionary of attributes. Received an "
-                f"unrecognized value: {data}"
-            )
+        raise ValidationError(
+            f"Related objects must be referenced by numeric ID, string unique identifier, or by dictionary of attributes. Received an "
+            f"unrecognized value: {value}"
+        )
 
-        # Look up object by PK
-        try:
-            return self.Meta.model.objects.get(pk=pk)
-        except ObjectDoesNotExist:
-            raise ValidationError(f"Related object not found using the provided numeric ID: {pk}")
+    def to_internal_value(self, data):
+        return self._resolve_model_instance(self.Meta.model, data)
+        

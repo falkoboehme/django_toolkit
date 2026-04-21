@@ -18,8 +18,8 @@ def get_model_class_name(model):
     return model.__name__
 
 
-def get_model_url(model):
-    return f"{model._meta.model_name}s"
+    # def get_model_url(model):
+    #     return f"{model._meta.model_name}s"
 
 
 def get_model_base_url(model) -> str:
@@ -43,7 +43,7 @@ def get_app_modelname_id(obj):
 
 def get_app_model_url(model, slash_start=True, slash_end=True):
     url = "/" if slash_start else ""
-    url += f"{model._meta.app_label}/{get_model_url(model)}"
+    url += f"{model._meta.app_label}/{get_model_base_url(model)}"
     url += "/" if slash_end else ""
     return url
 
@@ -191,9 +191,9 @@ def get_model_permission_name(model: models.Model, perm: str) -> str:
     return f"{model._meta.model_name.lower()}.{perm}"   # type: ignore
 
 
-def get_model_operation_url(model: models.Model, operation: str) -> str:
-    """Create a URL based on model name and operation (e.g. '/user/' or '/user/<id>/' or '/user/add/')"""
-    assert operation in ALL_OPERATIONS, f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
-    return f"/{model._meta.app_label}/{get_model_url(model)}/{operation}/"
+# def get_model_operation_url(model: models.Model, operation: str) -> str:
+#     """Create a URL based on model name and operation (e.g. '/user/' or '/user/<id>/' or '/user/add/')"""
+#     assert operation in ALL_OPERATIONS, f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
+#     return f"/{model._meta.app_label}/{get_model_base_url(model)}/{operation}/"
 
 

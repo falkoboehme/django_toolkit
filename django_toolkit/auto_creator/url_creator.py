@@ -3,7 +3,7 @@ URL Creator Mixin for ModelAutoCreator
 """
 
 from ..functions.files import insert_lines_in_file, insert_line_in_file, create_file
-from ..functions.models import get_model_operation_name
+from ..functions.models import get_model_operation_name, get_model_base_url
 from ..functions.permissions import READ_ONLY_OPERATIONS, ALL_OPERATIONS
 from .functions import get_comment_header, get_view_class_name
 
@@ -116,7 +116,7 @@ class URLCreatorMixin:
         )
 
         for operation in operations:
-            url_pattern = self._get_url_pattern(model_class.__name__, operation)
+            url_pattern = self._get_url_pattern(model_class, operation)
             view_name = get_view_class_name(model_class.__name__, operation)
             url_name = get_model_operation_name(model_class, operation)
             lines.append(
@@ -124,18 +124,19 @@ class URLCreatorMixin:
             )
 
         return lines
-
+    
     @staticmethod
-    def _get_url_pattern(model_name: str, operation: str) -> str:
+    def _get_url_pattern(model_class, operation: str) -> str:
         """Create a URL pattern based on model name and operation"""
         assert operation in ALL_OPERATIONS, "Invalid operation for URL pattern"
+        base_url = get_model_base_url(model_class)
 
         if operation == "list":
-            return f"{model_name.lower()}s/"
+            return f"{base_url}/"
         elif operation == "create":
-            return f"{model_name.lower()}s/{operation}/"
+            return f"{base_url}/{operation}/"
         elif operation == "detail":
-            return f"{model_name.lower()}s/<int:pk>/"
+            return f"{base_url}/<int:pk>/"
         elif operation in ["update", "delete"]:
-            return f"{model_name.lower()}s/<int:pk>/{operation}/"
+            return f"{base_url}/<int:pk>/{operation}/"
         return ""

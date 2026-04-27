@@ -29,7 +29,7 @@ class DTUpdateView(DTViewMixins, UpdateView):
         context = super().get_context_data(**kwargs)
         context.update(**self.dt_context(self.request, instance=obj))
         context.update(**self.get_card_context(self.request, form=context.get('form'), instance=obj, include_read_only_cards=False))
-        context['content_title'] = f"{_('Update')}: {str(obj)}"
+        context['content_title'] = f"{_('Update')} {obj._meta.verbose_name}: {str(obj)}"
         context['form_buttons'] = self.get_form_buttons()
         return context
 

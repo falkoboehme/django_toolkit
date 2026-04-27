@@ -28,6 +28,6 @@ class DTDetailView(DTViewMixins, DetailView):
         context.update(**self.dt_context(self.request, instance=obj))
         context.update(**self.get_card_context(self.request, instance=obj))
         context.update(**self.get_control_buttons(self.request, instance=obj))
-        context['content_title'] = str(obj)
+        context['content_title'] = f"{obj._meta.verbose_name}: {obj}"
         context['modal'] = confirm_delete_modal(obj)
         return context

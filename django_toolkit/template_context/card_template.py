@@ -91,7 +91,7 @@ class CardTemplate:
                     field = self._instance._meta.get_field(field_name)
                 except FieldDoesNotExist:
                     field = None
-
+                
                 generated_rows.append(
                     CardRow(
                         model_instance=self._instance,

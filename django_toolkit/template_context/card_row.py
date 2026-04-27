@@ -83,8 +83,18 @@ class CardRow:
             raw_value = self.bound_field.value()
         elif self.model_instance and self.field_name:
             raw_value = getattr(self.model_instance, self.field_name, None)
+
+        # Handle URLFields by rendering as clickable links
+        if self._field and isinstance(self._field, models.URLField) and raw_value:
+            return mark_safe(f'<a href="{raw_value}" target="_blank">{raw_value}</a>')
+
+        # Handle ForeignKey fields by generating links to related objects
+        if self._field and isinstance(self._field, models.ForeignKey) and raw_value is not None:
+            related_obj = getattr(self.model_instance, self.field_name, None)   # type: ignore
+            if related_obj is not None:
+                return mark_safe(generate_link_to_obj(related_obj, user))
         
-        # Handle ManyToMany and related fields with links
+        # Handle ManyToMany fields with explicit through models to generate links to related objects
         if raw_value is not None and hasattr(raw_value, 'all'):
             through_model = getattr(raw_value, 'through', None)
             is_explicit_through = bool(

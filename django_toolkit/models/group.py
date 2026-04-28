@@ -40,7 +40,7 @@ class DTGroup(DTHistoryChangeLoggingModel):
         global_search_fields = ['name', 'comment']
         verbose_name = _("Group")
         verbose_name_plural = _("Groups")
-        base_url = 'group'
+        base_url = 'groups'
         cards = [
             [
                 CardDefinition(

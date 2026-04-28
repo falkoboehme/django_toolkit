@@ -30,16 +30,3 @@ class AbstractDTApiToken(models.Model):
         if hasattr(self, 'user'):
             return f"{self.name} ({self.user})"     # type: ignore
         return self.name
-
-
-class AbstractDTApiTokenAllowedCIDR(models.Model):
-    cidr = CIDRField(
-        db_index=True,
-        verbose_name=_('CIDR')
-    )
-
-    class Meta:
-        abstract = True
-
-    def __str__(self):
-        return str(self.cidr)

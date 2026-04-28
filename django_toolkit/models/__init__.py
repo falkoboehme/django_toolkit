@@ -9,7 +9,7 @@ from .base_models import (
 )
 from .group import DTGroup
 from .user import DTUser
-from .api_token import AbstractDTApiToken, AbstractDTApiTokenAllowedCIDR
+from .api_token import AbstractDTApiToken
 from .request_based import DTRequestBasedQueryset
 from ..auto_creator.auto_creator import DTModelAutoCreator
 from ..decorators.model_auto_creator import model_auto_creator
@@ -28,7 +28,6 @@ __all__ = [
     'DTGroup',
     'DTUser',
     'AbstractDTApiToken',
-    'AbstractDTApiTokenAllowedCIDR',
     'model_auto_creator',
     'DTModelAutoCreator',
 ]

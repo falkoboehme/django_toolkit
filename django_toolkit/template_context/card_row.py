@@ -67,9 +67,11 @@ class CardRow:
         if self.bound_field:
             return self.bound_field.label
         if self._field:
-            return self._field.verbose_name.capitalize()
+            verbose_name = str(self._field.verbose_name)
+            return verbose_name if verbose_name else ""
         if self.field_name:
-            return self.field_name.replace("_", " ").capitalize()
+            field_name = self.field_name.replace("_", " ")
+            return field_name if field_name else ""
         return ""
     
 

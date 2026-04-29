@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import QuerySet
+from django.core.exceptions import FieldDoesNotExist
 from django.views.generic import ListView
 from django.utils.translation import gettext_lazy as _
 from typing import Any, cast
@@ -8,10 +9,8 @@ from .base import DTViewMixins
 from ..functions.permissions import (
     get_permission_for_model_action,
     get_perm_action_from_operation,
-    user_has_model_perms,
 )
 from ..template_context.card_definition import normalize_card_field
-from ..template_context.button import control_button_create
 
 
 class DTListView(DTViewMixins, ListView):
@@ -127,6 +126,7 @@ class DTListView(DTViewMixins, ListView):
 
         return value
 
+
     def _get_filter_lookup(self, field):
         if isinstance(field, (models.CharField, models.TextField, models.EmailField, models.SlugField)):
             return "icontains"
@@ -134,7 +134,10 @@ class DTListView(DTViewMixins, ListView):
             return "id"
         return "exact"
 
+
     def apply_filters(self, queryset: QuerySet[Any]) -> QuerySet[Any]:
+        handled_fields: set[str] = set()
+
         for field in self.get_filter_fields():
             field_name = field.name
             param_name = f"{self.filter_param_prefix}{field_name}"
@@ -142,6 +145,8 @@ class DTListView(DTViewMixins, ListView):
             value = self._normalize_filter_value(field, raw_value)
             if value is None:
                 continue
+
+            handled_fields.add(field_name)
 
             lookup = self._get_filter_lookup(field)
             if lookup == "exact":
@@ -151,11 +156,40 @@ class DTListView(DTViewMixins, ListView):
             else:
                 queryset = queryset.filter(**{f"{field_name}__{lookup}": value})
 
+        # Support relation filters like ?filter__cidrs=1 or ?filter__cloud_areas=2
+        # for forward and reverse many-to-many relations without per-view overrides.
+        for param_name, raw_value in self.request.GET.items():
+            if not param_name.startswith(self.filter_param_prefix):
+                continue
+
+            field_name = param_name[len(self.filter_param_prefix):]
+            if not field_name or field_name in handled_fields:
+                continue
+
+            try:
+                field = self.model._meta.get_field(field_name)    # type: ignore[union-attr]
+            except FieldDoesNotExist:
+                continue
+
+            if not getattr(field, "many_to_many", False):
+                continue
+
+            try:
+                relation_id = int(raw_value)
+            except (TypeError, ValueError):
+                continue
+
+            queryset = queryset.filter(**{f"{field_name}__id": relation_id})
+
+        queryset = queryset.distinct()
+
         return queryset
+
 
     def get_queryset(self) -> QuerySet[Any]:
         queryset = cast(QuerySet[Any], super().get_queryset())
         return self.apply_filters(queryset)
+
 
     def _get_filter_fields_context(self):
         fields_context = []
@@ -168,6 +202,7 @@ class DTListView(DTViewMixins, ListView):
                 "current_value": self.request.GET.get(f"{self.filter_param_prefix}{field.name}", ""),
             })
         return fields_context
+
 
     def _build_filter_cards_from_model_meta(self, fields_by_name: dict[str, dict[str, Any]]) -> tuple[list[list[dict[str, Any]]], set[str]]:
         if self.model is None:
@@ -215,6 +250,7 @@ class DTListView(DTViewMixins, ListView):
 
         return filter_cards, used_field_names
 
+
     def _build_filter_cards_fallback(self, filter_fields_context: list[dict[str, Any]]) -> list[list[dict[str, Any]]]:
         if not filter_fields_context:
             return []
@@ -234,6 +270,7 @@ class DTListView(DTViewMixins, ListView):
             columns[index % column_count].append(card)
 
         return [column for column in columns if column]
+
 
     def _get_filter_cards_context(self, filter_fields_context: list[dict[str, Any]]) -> dict[str, Any]:
         fields_by_name = {field["name"]: field for field in filter_fields_context}
@@ -259,10 +296,3 @@ class DTListView(DTViewMixins, ListView):
             "filter_cards": filter_cards,
             "filter_card_column_count": len(filter_cards),
         }
-
-    
-
-    
-
-
-    

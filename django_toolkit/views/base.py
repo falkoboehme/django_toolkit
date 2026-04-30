@@ -50,7 +50,14 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
                         form=form,
                         is_placeholder=is_placeholder,
                     )
-                    card_col_dict.append(card.context())
+                    card_context = card.context()
+                    if (
+                        not include_read_only_cards
+                        and not card_context.get('is_placeholder')
+                        and not card_context.get('rows')
+                    ):
+                        continue
+                    card_col_dict.append(card_context)
                 if card_col_dict:
                     context['cards'].append(card_col_dict)
             context['card_column_count'] = len(context['cards'])

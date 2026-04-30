@@ -30,13 +30,14 @@ class DTUpdateView(DTViewMixins, UpdateView):
         context.update(**self.dt_context(self.request, instance=obj))
         context.update(**self.get_card_context(self.request, form=context.get('form'), instance=obj, include_read_only_cards=False))
         context['content_title'] = f"{_('Update')} {obj._meta.verbose_name}: {str(obj)}"
-        context['form_buttons'] = self.get_form_buttons()
+        context['form_buttons'] = self.get_form_buttons(obj)
         return context
 
 
-    def get_form_buttons(self) -> list[Button]:
+    def get_form_buttons(self, obj) -> list[Button]:
+        detail_url = f"{get_app_model_url(self.model)}{obj.id}/"
         return [
-            form_button_cancel(get_app_model_url(self.model)),
+            form_button_cancel(detail_url),
             form_button_reset(),
             form_button_update()
         ]

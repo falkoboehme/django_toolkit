@@ -137,6 +137,16 @@ def get_fields_of_model(model, selector="all"):
             f"Unsupported card field definition '{field_entry}'. Use a string field name or an object/dict with a 'name'."
         )
 
+    def is_external_field(field_entry) -> bool:
+        if isinstance(field_entry, dict):
+            return bool(field_entry.get("external", False))
+
+        options = getattr(field_entry, "options", None)
+        if isinstance(options, dict):
+            return bool(options.get("external", False))
+
+        return bool(getattr(field_entry, "external", False))
+
     fields = []
     if hasattr(model._meta, "cards"):
         for card_col in model._meta.cards:
@@ -151,6 +161,8 @@ def get_fields_of_model(model, selector="all"):
                             fields.append(field_name)
                 elif selector == "rw":
                     for field_entry in card.fields:
+                        if is_external_field(field_entry):
+                            continue
                         field_name = get_field_name(field_entry)
                         if field_name not in card.ro_fields:
                             fields.append(field_name)

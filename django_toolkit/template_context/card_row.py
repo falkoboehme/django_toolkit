@@ -1,5 +1,6 @@
 import json
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 from django.forms import BoundField
 from django.db import models
 from django.conf import settings
@@ -67,13 +68,51 @@ class CardRow:
         if self.bound_field:
             return self.bound_field.label
         if self._field:
-            verbose_name = str(self._field.verbose_name)
-            return verbose_name if verbose_name else ""
+            verbose_name = getattr(self._field, "verbose_name", None)
+            if verbose_name is not None:
+                verbose_name_str = str(verbose_name)
+                if verbose_name_str:
+                    return verbose_name_str
+
+            related_model = getattr(self._field, "related_model", None)
+            if related_model is not None and hasattr(related_model, "_meta"):
+                rel_verbose_name = getattr(related_model._meta, "verbose_name_plural", None)
+                if rel_verbose_name:
+                    return str(rel_verbose_name)
         if self.field_name:
             field_name = self.field_name.replace("_", " ")
             return field_name if field_name else ""
         return ""
     
+
+    @property
+    def is_json_field(self) -> bool:
+        """Whether the current row represents a JSON model field."""
+        if self._field and isinstance(self._field, models.JSONField):
+            return True
+
+        if self.bound_field is not None:
+            # Form JSONField (update/create views)
+            if self.bound_field.field.__class__.__name__ == "JSONField":
+                return True
+
+            # Fallback: resolve model field from form meta
+            form_model = getattr(getattr(self.bound_field.form, "_meta", None), "model", None)
+            if form_model is not None and self.field_name:
+                try:
+                    model_field = form_model._meta.get_field(self.field_name)
+                    return isinstance(model_field, models.JSONField)
+                except Exception:
+                    pass
+
+        if self.model_instance is not None and self.field_name:
+            try:
+                model_field = self.model_instance._meta.get_field(self.field_name)
+                return isinstance(model_field, models.JSONField)
+            except Exception:
+                return False
+
+        return False
 
     @property
     def value(self) -> any:     # type: ignore
@@ -95,6 +134,21 @@ class CardRow:
             related_obj = getattr(self.model_instance, self.field_name, None)   # type: ignore
             if related_obj is not None:
                 return mark_safe(generate_link_to_obj(related_obj, user))
+
+        # Render JSONField values as pretty-printed JSON.
+        # In form context return plain text for textarea; in display context return <pre>.
+        if self.is_json_field and raw_value is not None:
+            try:
+                if isinstance(raw_value, str):
+                    parsed_value = json.loads(raw_value)
+                else:
+                    parsed_value = raw_value
+                pretty_json = json.dumps(parsed_value, indent=2, ensure_ascii=False, sort_keys=True)
+                if self.bound_field:
+                    return pretty_json
+                return format_html('<pre class="dt-json-value mb-0">{}</pre>', pretty_json)
+            except (TypeError, ValueError, json.JSONDecodeError):
+                return raw_value
         
         # Handle ManyToMany fields with explicit through models to generate links to related objects
         if raw_value is not None and hasattr(raw_value, 'all'):

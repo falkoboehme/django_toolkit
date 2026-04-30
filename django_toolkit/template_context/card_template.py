@@ -74,6 +74,11 @@ class CardTemplate:
         for field_definition in self._field_definitions:
             field_name = field_definition.name
             row_kwargs = field_definition.row_kwargs
+            external_value = row_kwargs.get("external", False)
+            is_external = bool(external_value) if isinstance(external_value, bool) else str(external_value).strip().lower() in {"1", "true", "yes", "ja"}
+            if self._form is not None and is_external:
+                continue
+
             is_read_only = field_name in self._ro_fields
 
             if self._form is not None and field_name in self._form.fields and not is_read_only:

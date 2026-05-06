@@ -1,5 +1,5 @@
 from django.apps import apps
-from django.db import models
+from django.db.models import Model
 from .permissions import ALL_OPERATIONS, PERMISSION_ACTION
 
 
@@ -66,6 +66,18 @@ def get_model_pk(model):
         for field in model._meta.get_fields():
             if field.name != "id" and hasattr(field, "unique") and field.unique:
                 return field.name
+            
+def get_model_from_table_name(table_name) -> Model | None:
+    """returns the model class based on the database table name"""
+    for model in apps.get_models():
+        if model._meta.db_table == table_name:
+            return model    # type: ignore
+    return None
+
+def get_model_from_app_model_name(app_label, model_name) -> Model:
+    """returns the model class based on the app label and model name"""
+    return apps.get_model(app_label, model_name)    # type: ignore
+    
 
 
 def get_obj_url(obj):
@@ -96,6 +108,11 @@ def get_user_defined_models():
         for model in apps.get_models()
         if model._meta.app_label not in ["admin", "auth", "contenttypes", "sessions", "django_toolkit"]
     ]
+
+
+def get_history_models():
+    """returns all models, which are defined as history models (models, which are tracked by the history)"""
+    return [model for model in apps.get_models() if getattr(model._meta, "history", False)]
 
 
 def get_user_defined_models_of_app(app_name):
@@ -190,22 +207,19 @@ def get_related_name_from_field(field):
                 return key
 
 
-def get_model_operation_name(model: models.Model, operation: str) -> str:
+def get_model_operation_name(model: Model, operation: str) -> str:
     """Create a URL name based on base_url and operation (e.g. 'users.list' or 'users.create')."""
     assert operation in ALL_OPERATIONS, f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
     base_url = get_model_base_url(model)
     return f"{base_url}.{operation}"  # type: ignore
 
 
-def get_model_permission_name(model: models.Model, perm: str) -> str:
+def get_model_permission_name(model: Model, perm: str) -> str:
     """Create a permission name based on model name and operation (e.g. 'user.view' or 'user.add')"""
     assert perm in PERMISSION_ACTION, f"Invalid permission '{perm}'. Must be one of {PERMISSION_ACTION}"
     return f"{model._meta.model_name.lower()}.{perm}"   # type: ignore
 
 
-# def get_model_operation_url(model: models.Model, operation: str) -> str:
-#     """Create a URL based on model name and operation (e.g. '/user/' or '/user/<id>/' or '/user/add/')"""
-#     assert operation in ALL_OPERATIONS, f"Invalid operation '{operation}'. Must be one of {ALL_OPERATIONS}"
-#     return f"/{model._meta.app_label}/{get_model_base_url(model)}/{operation}/"
+
 
 

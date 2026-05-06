@@ -398,9 +398,22 @@ body.dt-app {
     margin-bottom: 1.5rem;
 }
 
+.dt-card.dt-table-card {
+    overflow: visible;
+}
+
+.dt-card.dt-table-card > .border.rounded {
+    overflow: visible;
+}
+
+.dt-card.dt-table-card .dropdown-menu {
+    z-index: 2000;
+}
+
 .dt-table-container {
     padding: .5rem;
 }
+
 
 .nav-tabs {
     border-bottom: 1px solid var(--dt-border-strong);
@@ -431,7 +444,7 @@ body.dt-app {
 }
 
 .table>:not(caption)>*>* {
-    padding: .5rem .625rem;
+    padding: .5rem .5rem;
 }
 
 table th,

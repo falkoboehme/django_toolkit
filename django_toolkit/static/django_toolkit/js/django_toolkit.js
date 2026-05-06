@@ -218,9 +218,53 @@ function initializeSidebarController() {
     setCollapsed(getSavedCollapsed());
 }
 
+function initializeListDeleteModal() {
+    const deleteModal = document.getElementById('deleteAskModal');
+    if (!deleteModal || deleteModal.dataset.dtDeleteBound === 'true') {
+        return;
+    }
+
+    deleteModal.dataset.dtDeleteBound = 'true';
+
+    // Listen for clicks on delete action links and populate modal before opening
+    document.addEventListener('click', function (event) {
+        const deleteLink = event.target.closest('.dt-table-delete-action');
+        if (!deleteLink) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const deleteUrl = deleteLink.getAttribute('data-delete-url') || '#';
+        const deleteObject = deleteLink.getAttribute('data-delete-object') || '';
+        const deleteModel = deleteLink.getAttribute('data-delete-model') || 'object';
+
+        console.log('Delete action clicked:', { deleteUrl, deleteObject, deleteModel });
+
+        // Update modal form action
+        const modalForm = deleteModal.closest('form');
+        if (modalForm) {
+            modalForm.setAttribute('action', deleteUrl);
+        }
+
+        // Reconstruct entire modal body with object label
+        const modalBody = deleteModal.querySelector('#modal-body');
+        if (modalBody) {
+            const htmlContent = `<p>Are you sure you want to <strong class="text-danger">delete</strong> ${deleteModel} <strong>${deleteObject}</strong>?</p>`;
+            modalBody.innerHTML = htmlContent;
+            console.log('Modal body updated:', htmlContent);
+        }
+
+        // Open modal using Bootstrap API
+        const bsModal = new bootstrap.Modal(deleteModal);
+        bsModal.show();
+    });
+}
+
 function initializeDjangoToolkit() {
     initializeSidebarController();
     initializeFilterFormSubmitCleanup();
+    initializeListDeleteModal();
 }
 
 if (document.readyState === 'loading') {

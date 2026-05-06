@@ -4,9 +4,9 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
+from django.db import connection
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.core.exceptions import MultipleObjectsReturned
 from django.db.models.fields import *
 from django.db.models.fields.related import *
 from django.db.models.fields.related_descriptors import *
@@ -283,6 +283,10 @@ class InitDB:
         if db_engine == 'django.db.backends.sqlite3':
             db_file = Path.joinpath(settings.BASE_DIR, 'db.sqlite3')
             Path.unlink(db_file, missing_ok=True)
+        elif db_engine == 'django.db.backends.postgresql':
+            with connection.cursor() as cursor:
+                cursor.execute("DROP SCHEMA public CASCADE;")
+                cursor.execute("CREATE SCHEMA public;")
         
         for app_label in user_app_labels:
             migration_dir = Path.joinpath(settings.BASE_DIR, app_label, 'migrations')

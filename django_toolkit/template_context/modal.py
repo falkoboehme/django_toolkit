@@ -7,17 +7,37 @@ from django.utils.safestring import mark_safe
 from ..functions.models import get_app_model_url
 
 
-def confirm_delete_modal(instance):
-    model_name = instance._meta.model._meta.model_name
+def confirm_delete_modal(instance_or_model):
+    model_meta = getattr(instance_or_model, '_meta', None)
+    object_meta = getattr(getattr(instance_or_model, '_meta', None), 'model', None)
+
+    # Detail view: a concrete instance with primary key available
+    if model_meta is not None and hasattr(instance_or_model, 'pk') and getattr(instance_or_model, 'pk', None) is not None:
+        model_name = object_meta._meta.model_name if object_meta is not None else model_meta.model_name
+        object_label = str(instance_or_model)
+        body = mark_safe(
+            f'<p>Are you sure you want to <strong class="text-danger">delete</strong> {model_name} '
+            f'<strong>{object_label}</strong>?</p>'
+        )
+        form_url = f"{get_app_model_url(instance_or_model)}{instance_or_model.id}/delete/"
+    else:
+        # List view: one shared modal, object is injected dynamically on click
+        model_name = model_meta.verbose_name if model_meta is not None else 'object'
+        body = mark_safe(
+            f'<p>Are you sure you want to <strong class="text-danger">delete</strong> {model_name} '
+            '<strong id="dt-delete-object-name"></strong>?</p>'
+        )
+        form_url = '#'
+
     return Modal(
         title='Confirm Deletion',
-        body=mark_safe(f'<p>Are you sure you want to <strong class="text-danger">delete</strong> {model_name} <strong>{str(instance)}</strong>?</p>'),
+        body=body,
         # TODO: Use Buttons
         footer=mark_safe(
                 '<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>' \
                 '<button type="submit" class="btn btn-danger">Delete</button>' \
             ),
-        form_url = f"{get_app_model_url(instance)}{instance.id}/delete/",
+        form_url=form_url,
         dialog_class='modal-dialog-center',
     )
 

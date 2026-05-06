@@ -14,6 +14,16 @@ def menu_button_create(model):
             cls="btn btn-sm lh-1 dt-menu-create-btn"
         )
 
+def table_actions_button(record=None):
+    return Button(
+        name='',
+        href='#',
+        color='grey-outline',
+        attr=mark_safe('type="button" data-bs-toggle="dropdown" aria-expanded="false"'),
+        icon=mark_safe(SVGIcon(icon_name="menu", width=12, height=12, fillcolor="currentcolor", viewbox="2 2 20 22").render()),
+        cls="btn btn-sm py-0 px-2 lh-1 dt-table-actions-btn dropdown-toggle",
+    )
+
 def goto_button(url, text, color='blue'):
     return Button(
         name=_(text),

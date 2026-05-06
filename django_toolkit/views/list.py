@@ -11,6 +11,7 @@ from ..functions.permissions import (
     get_perm_action_from_operation,
 )
 from ..template_context.card_definition import normalize_card_field
+from ..template_context.modal import confirm_delete_modal
 
 
 class DTListView(DTViewMixins, ListView):
@@ -27,6 +28,7 @@ class DTListView(DTViewMixins, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(**self.dt_context(self.request))
+        context['modal'] = confirm_delete_modal(self.model)
         filter_fields_context = self._get_filter_fields_context()
         context['content_title'] = self.model._meta.verbose_name_plural     # type: ignore
         context['filter_fields'] = filter_fields_context

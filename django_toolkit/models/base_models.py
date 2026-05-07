@@ -1,6 +1,8 @@
 
+import uuid
 from django.db.models import options
 from django.db import models
+from django.db.models.base import ModelBase
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from .request_based import DTModelManager
@@ -8,8 +10,27 @@ from ..template_context.card_definition import CardDefinition
 from ..mixins.model_change_logging import DTModelChangeLoggingMixin
 
 
+class DTModelBase(ModelBase):
+    """Model metaclass that injects a UUID primary key when Meta.uuid_pk=True."""
 
-class DTBaseModel(models.Model):
+    def __new__(mcls, name, bases, attrs, **kwargs):
+        meta_cls = attrs.get('Meta')
+        use_uuid_pk = bool(getattr(meta_cls, 'uuid_pk', False))
+
+        # Inject id field before Django builds the model class.
+        if use_uuid_pk and 'id' not in attrs:
+            attrs['id'] = models.UUIDField(
+                primary_key=True,
+                default=uuid.uuid4,
+                editable=False,
+                verbose_name=_('ID'),
+            )
+
+        return super().__new__(mcls, name, bases, attrs, **kwargs)
+
+
+
+class DTBaseModel(models.Model, metaclass=DTModelBase):
     """
     Base model for all models
     """
@@ -19,7 +40,8 @@ class DTBaseModel(models.Model):
         'history',          # Track changes of the model
         'read_only',        # Allow only read access
         'base_url',         # Base URL for the model (e.g. 'users')
-        'global_search_fields',
+        'uuid_pk',          # Use UUID as primary key
+        'global_search_fields', # which fileds to include in global search
         'cards',            # List of cards to display in detail view (list of columns with list of cards)
                             # cards = [
                             #     [  # Column 0
@@ -50,7 +72,9 @@ class DTBaseModel(models.Model):
         abstract = True
         history = False
         read_only = False
+        uuid_pk = False
         global_search_fields = ()
+
 
     objects = DTModelManager()
     

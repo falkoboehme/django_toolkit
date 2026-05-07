@@ -10,12 +10,40 @@ from ..functions.api_filters import dict_to_filter_params
 
 class BaseSerializer(serializers.HyperlinkedModelSerializer, serializers.ModelSerializer):
     """
-    Basis Serializer
-    adds fields id, url and display
+    Base serializer.
+    Adds fields id, url and display.
     """
     serializer_related_field = serializers.HyperlinkedRelatedField
-    id = serializers.IntegerField(read_only=True)
     display = serializers.SerializerMethodField(read_only=True)
+
+    def get_fields(self):
+        fields = super().get_fields()
+
+        model = getattr(getattr(self, 'Meta', None), 'model', None)
+        if model is None:
+            return fields
+
+        pk_field = model._meta.pk
+        pk_internal_type = pk_field.get_internal_type()
+
+        if pk_internal_type == 'UUIDField':
+            fields['id'] = serializers.UUIDField(read_only=True)
+        elif pk_internal_type in {
+            'AutoField',
+            'BigAutoField',
+            'SmallAutoField',
+            'IntegerField',
+            'BigIntegerField',
+            'SmallIntegerField',
+            'PositiveIntegerField',
+            'PositiveBigIntegerField',
+            'PositiveSmallIntegerField',
+        }:
+            fields['id'] = serializers.IntegerField(read_only=True)
+        else:
+            fields['id'] = serializers.CharField(read_only=True)
+
+        return fields
 
     def get_display(self, obj):
         return str(obj)

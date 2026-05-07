@@ -6,7 +6,7 @@ from django.urls import reverse
 from .request_based import DTModelManager
 from ..template_context.card_definition import CardDefinition
 from ..mixins.model_change_logging import DTModelChangeLoggingMixin
-
+import uuid
 
 
 
@@ -14,6 +14,12 @@ class DTBaseModel(models.Model):
     """
     Base model for all models
     """
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name=_('ID'),
+    )
     
     # Extends Meta information of models
     options.DEFAULT_NAMES = options.DEFAULT_NAMES + (
@@ -83,7 +89,7 @@ class DTHistoryModel(DTBaseModel):
         read_only = False
 
 
-class DTHistoryChangeLoggingModel(DTModelChangeLoggingMixin, DTBaseModel):
+class DTHistoryChangeLoggingModel(DTBaseModel, DTModelChangeLoggingMixin):
     """
     Base model with change logging and history to track who did a change and when was it made
     """

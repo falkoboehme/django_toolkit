@@ -136,7 +136,7 @@ class URLCreatorMixin:
         elif operation == "create":
             return f"{base_url}/{operation}/"
         elif operation == "detail":
-            return f"{base_url}/<int:pk>/"
+            return f"{base_url}/<str:pk>/"
         elif operation in ["update", "delete"]:
-            return f"{base_url}/<int:pk>/{operation}/"
+            return f"{base_url}/<str:pk>/{operation}/"
         return ""

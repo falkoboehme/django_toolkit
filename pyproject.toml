@@ -34,7 +34,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/yourusername/django-toolkit"
 Repository = "https://github.com/yourusername/django-toolkit"
-BugTracker = "https://github.com/yourusername/django-toolkit"
+Bugtrack = "https://github.com/yourusername/django-toolkit"
 
 [tool.setuptools.packages.find]
 include = ["django_toolkit*"]

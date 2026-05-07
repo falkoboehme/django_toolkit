@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.reverse import reverse
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import viewsets, pagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 
@@ -26,9 +25,6 @@ log = logging.getLogger("toolkit")
 
 DT_API_FILTER_BACKENDS = [DjangoFilterBackend, SearchFilter, RelatedOrderingFilter]
 
-
-class TokenAuthView(TokenObtainPairView):
-    _serializer_class = "django_toolkit.api.serializers.APITokenAuthSerializer"
 
 
 class DocsView(APIView):

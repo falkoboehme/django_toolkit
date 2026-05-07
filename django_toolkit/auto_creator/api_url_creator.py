@@ -31,7 +31,7 @@ class APIURLCreatorMixin:
         files.add(file) if file else None
 
         api_import_lines = [
-            "from django_toolkit.api.views import APIRootView, DocsView, TokenAuthView",
+            "from django_toolkit.api.views import APIRootView, DocsView",
             "from django_toolkit.api.swagger import schema_view",
             "from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView",
         ]
@@ -48,7 +48,6 @@ class APIURLCreatorMixin:
             f"    {get_comment_header('API Basics')}",
             "    path('api/', APIRootView.as_view(), name='api-root'),",
             "    path('api/docs/', DocsView.as_view(), name='api-docs'),",
-            "    path('api/token/', TokenAuthView.as_view(), name='token-obtain-pair'),",
             f"    {get_comment_header('API Swagger v2')}",
             "    path('api/docs/swagger-v2/', schema_view.with_ui('swagger', cache_timeout=86400), name='api-swagger-v2'),",
             f"    {get_comment_header('API Swagger v3')}",

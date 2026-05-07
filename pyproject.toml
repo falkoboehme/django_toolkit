@@ -27,13 +27,14 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-    "Django>=4.0",
+    "Django>=6.0",
     "django-tables2",
 ]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/django-toolkit"
 Repository = "https://github.com/yourusername/django-toolkit"
+BugTracker = "https://github.com/yourusername/django-toolkit"
 
 [tool.setuptools.packages.find]
 include = ["django_toolkit*"]

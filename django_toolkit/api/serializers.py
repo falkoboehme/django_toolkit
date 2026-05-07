@@ -3,71 +3,8 @@ from django.contrib.auth.signals import user_logged_in
 from django.core.exceptions import FieldError, MultipleObjectsReturned, ObjectDoesNotExist, ImproperlyConfigured
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework_simplejwt.state import token_backend
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer, TokenObtainSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-
 from .mixins import ManyToManyWriteSerializerMixin, ChangeLoggingSerializerMixin
 from ..functions.api_filters import dict_to_filter_params
-
-import logging
-
-log = logging.getLogger("fast_dev")
-
-
-class APITokenRefreshSerializer(TokenRefreshSerializer):
-    """
-    Inherit from `TokenRefreshSerializer` and touch the database
-    before re-issuing a new access token and ensure that the user
-    exists and is active.
-    """
-
-    error_msg = 'Login failed'
-
-    def validate(self, attrs):
-        token_payload = token_backend.decode(attrs['refresh'])
-        try:
-            user = get_user_model().objects.get(pk=token_payload['user_id'])
-        except get_user_model().DoesNotExist:
-            log.error(f"User having id {token_payload['user_id']} does not exist")
-            raise exceptions.AuthenticationFailed(
-                self.error_msg, 'no_active_account'
-            )
-
-        #if not user.is_active or user.email != token_payload['user_email']:
-        if not user.is_active:
-            log.error(f"User {user} is not active")
-            raise exceptions.AuthenticationFailed(
-                self.error_msg, 'no_active_account'
-            )
-
-        log.debug(f"Token for {user} refreshed")
-        return super().validate(attrs)
-
-
-
-class APITokenAuthSerializer(TokenObtainSerializer):
-    token_class = RefreshToken
-
-    def validate(self, attrs):
-        data = {}
-        email = attrs[self.username_field]
-        password = attrs["password"]
-        request = self.context["request"]
-        # pass the auth_module to authenticate, so it is passed to user_login_failed-Signal in credentials
-        user = authenticate(request=request, username=email, password=password, auth_module='Token')
-
-        if user is None:
-            raise exceptions.AuthenticationFailed(
-                'Login failed',
-                "no_active_account",
-            )
-        else:
-            user_logged_in.send(sender=user.__class__, request=request, user=user, auth_module='Token')
-            refresh = self.get_token(user)
-            data["refresh"] = str(refresh)
-            data["access"] = str(refresh.access_token)
-        return data
 
 
 

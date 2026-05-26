@@ -115,6 +115,11 @@ class URLCreatorMixin:
             READ_ONLY_OPERATIONS if is_read_only else ALL_OPERATIONS
         )
 
+        url_operation_order = ["list", "create", "detail", "update", "delete"]
+        operations = [
+            operation for operation in url_operation_order if operation in operations
+        ]
+
         for operation in operations:
             url_pattern = self._get_url_pattern(model_class, operation)
             view_name = get_view_class_name(model_class.__name__, operation)

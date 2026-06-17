@@ -27,7 +27,7 @@ but be aware that this will query the database, so it should be used with cautio
 """
 
 
-READ_ONLY_OPERATIONS = ["detail", "list"]
+READ_ONLY_OPERATIONS = ["list", "detail"]
 READ_WRITE_OPERATIONS = ["create", "update", "delete"]
 ALL_OPERATIONS = READ_ONLY_OPERATIONS + READ_WRITE_OPERATIONS
 

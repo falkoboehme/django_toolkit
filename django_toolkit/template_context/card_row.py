@@ -1,4 +1,5 @@
 import json
+from functools import lru_cache
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 from django.forms import BoundField
@@ -8,9 +9,10 @@ from django.http import HttpRequest
 from django.urls import reverse
 from django.urls.exceptions import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 from datetime import datetime, date, time
 from ..functions.format import django_format_to_python
-from ..functions.models import generate_link_to_obj, get_model_base_url
+from ..functions.models import generate_link_to_obj, get_model_base_url, get_user_by_email
 from ..template_context.icon import icon_false, icon_true
 
 
@@ -124,6 +126,12 @@ class CardRow:
             raw_value = self.bound_field.value()
         elif self.model_instance and self.field_name:
             raw_value = getattr(self.model_instance, self.field_name, None)
+
+        # Handle EmailField values: if the email matches a user, link to that user instead of mailto.
+        if self._field and isinstance(self._field, models.EmailField) and raw_value:
+            linked_user = get_user_by_email(str(raw_value).strip())
+            if linked_user is not None:
+                return mark_safe(generate_link_to_obj(linked_user, user))
 
         # Handle URLFields by rendering as clickable links
         if self._field and isinstance(self._field, models.URLField) and raw_value:

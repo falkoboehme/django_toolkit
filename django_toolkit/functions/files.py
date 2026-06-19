@@ -18,7 +18,7 @@ def get_app_path(app_label: str) -> Path:
     from django.apps import apps
     try:
         app_config = apps.get_app_config(app_label)
-        return Path(app_config.module.__file__).parent
+        return Path(app_config.module.__file__).parent      # type: ignore
     except LookupError:
         # Fallback for apps not in registry
         return Path(app_label)

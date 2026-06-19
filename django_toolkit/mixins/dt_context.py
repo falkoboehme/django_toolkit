@@ -5,6 +5,7 @@ from ..template_context.menu_entry import MenuEntry
 from ..template_context.icon import icon_rest_api, icon_swagger_v2, icon_swagger_v3
 from ..functions.request import get_app_model_from_request
 from ..functions.models import get_app_modelname_id
+from ..functions.base import get_project_module_name
 
 import logging
 log = logging.getLogger("toolkit")
@@ -45,7 +46,7 @@ class DTContextMixin:
     
 
     def menu_context(self, request, instance=None):
-        project_name = settings.BASE_DIR.name
+        project_name = get_project_module_name()
         menu_file = "menu"
         log.debug(f"Trying to import {project_name}.{menu_file}")
         try:

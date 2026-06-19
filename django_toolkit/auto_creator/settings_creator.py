@@ -13,6 +13,7 @@ class SettingsCreatorMixin:
         "# =============================================================================",
     ]
     dt_settings_lines = [
+        "DT_LOGGING_LEVEL = config('DT_LOGGING_LEVEL', default='INFO', cast=str)",
         "DT_ENVIRONMENT = str(config('DT_ENVIRONMENT', default='production', cast=str)).strip().lower()",
         "DEBUG = DT_ENVIRONMENT == 'development'",
         "DT_LOGIN_REQUIRED = config('DT_LOGIN_REQUIRED', default=True, cast=bool)",

@@ -57,9 +57,9 @@ class DTContextMixin:
                     context['menu_items'].append(menu_entry)
             return context
         except ModuleNotFoundError as error:
-            log.error('No menu.py in project folder found')
+            log.error(f"No menu.py in project folder ({project_name}) found")
         except AttributeError as error:
-            log.error('No function get_side_menu_items in menu.py found')
+            log.error(f"No function get_side_menu_items in menu.py found in folder {project_name}")
             raise error
 
 

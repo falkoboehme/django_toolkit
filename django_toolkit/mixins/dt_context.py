@@ -47,6 +47,7 @@ class DTContextMixin:
     def menu_context(self, request, instance=None):
         project_name = settings.BASE_DIR.name
         menu_file = "menu"
+        log.debug(f"Trying to import {project_name}.{menu_file}")
         try:
             module = importlib.import_module(f"{project_name}.{menu_file}")
             get_side_menu_items = getattr(module, "get_side_menu_items")
@@ -57,9 +58,9 @@ class DTContextMixin:
                     context['menu_items'].append(menu_entry)
             return context
         except ModuleNotFoundError as error:
-            log.error('No menu.py in project folder found')
+            log.error(f"No menu.py in project folder ({project_name}) found")
         except AttributeError as error:
-            log.error('No function get_side_menu_items in menu.py found')
+            log.error(f"No function get_side_menu_items in menu.py found in folder {project_name}")
             raise error
 
 

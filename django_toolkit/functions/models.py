@@ -1,5 +1,7 @@
 from django.apps import apps
 from django.db.models import Model
+from functools import lru_cache
+from django.contrib.auth import get_user_model
 from .permissions import ALL_OPERATIONS, PERMISSION_ACTION
 
 
@@ -67,6 +69,19 @@ def get_model_pk(model):
             if field.name != "id" and hasattr(field, "unique") and field.unique:
                 return field.name
             
+@lru_cache(maxsize=256)
+def get_user_by_email(email: str):
+    if not email:
+        return None
+    User = get_user_model()
+    try:
+        return User.objects.get(email=email)
+    except User.DoesNotExist:
+        return None
+    except Exception:
+        return None
+
+
 def get_model_from_table_name(table_name) -> Model | None:
     """returns the model class based on the database table name"""
     for model in apps.get_models():

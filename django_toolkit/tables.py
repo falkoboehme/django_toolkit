@@ -98,8 +98,16 @@ class DTModelTable(DTBaseTable):
             for field_type, column_class in field_type_mapping.items():
                 if isinstance(field, field_type):
                     if field_name in cls.base_columns:
-                        # Replace column of this field with the correct custom column
-                        cls.base_columns[field_name] = column_class(accessor=field_name)
+                        # Replace with formatted column while preserving options like linkify.
+                        original_column = cls.base_columns[field_name]
+                        accessor = getattr(original_column, "accessor", field_name)
+                        new_column = column_class(accessor=accessor)
+                        new_column.link = getattr(original_column, "link", None)
+                        new_column.verbose_name = original_column.verbose_name
+                        new_column.orderable = original_column.orderable
+                        new_column.attrs = original_column.attrs
+                        new_column.empty_values = original_column.empty_values
+                        cls.base_columns[field_name] = new_column
                     break
     
     def __init__(self, *args, **kwargs):

@@ -18,7 +18,16 @@ def get_app_path(app_label: str) -> Path:
     from django.apps import apps
     try:
         app_config = apps.get_app_config(app_label)
-        return Path(app_config.module.__file__).parent      # type: ignore
+        # AppConfig.path is the canonical filesystem path and also works
+        # for apps/modules where module.__file__ can be None.
+        if getattr(app_config, "path", None):
+            return Path(app_config.path)
+
+        module_file = getattr(app_config.module, "__file__", None)
+        if module_file:
+            return Path(module_file).parent
+
+        return Path(app_label)
     except LookupError:
         # Fallback for apps not in registry
         return Path(app_label)

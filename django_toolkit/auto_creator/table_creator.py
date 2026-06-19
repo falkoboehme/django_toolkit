@@ -1,6 +1,6 @@
 from typing import Dict
 from pathlib import Path
-from django_toolkit.functions.files import insert_line_in_file, create_file
+from django_toolkit.functions.files import insert_line_in_file, create_file, get_app_path
 from django_toolkit.functions.models import get_model_operation_name
 from .functions import get_table_class_name
 
@@ -13,7 +13,8 @@ class TableCreatorMixin:
     def _auto_create_app_tables(self, app_label: str) -> set:   
         """Auto-create tables for a specific app. Returns a set of files if tables were modified."""
         files = set()
-        app_tables_dir = Path(f"{app_label}/tables/")
+        app_base_path = get_app_path(app_label)
+        app_tables_dir = app_base_path / "tables"
 
         # Create __init__.py if it doesn't exist
         init_file_path = app_tables_dir / "__init__.py"
@@ -27,6 +28,7 @@ class TableCreatorMixin:
         for model_name, model_info in self._registry[app_label].items():
             if model_info.get("create_tables"):
                 model_class = model_info["model_class"]
+                table_class_name = get_table_class_name(model_class.__name__)
                 file = create_file(
                     file_path=app_tables_dir / f"{model_name.lower()}_table.py",
                     content=self._get_model_table_file_content(model_info),
@@ -36,7 +38,8 @@ class TableCreatorMixin:
                 insert_line_in_file(
                     file_path=init_file_path,
                     anchor="",
-                    line_to_insert=f"from .{model_name.lower()}_table import {get_table_class_name(model_class.__name__)}",
+                    line_to_insert=f"from .{model_name.lower()}_table import {table_class_name}",
+                    position="after",
                     check_string=f"from .{model_name.lower()}_table import",
                 )
         return files

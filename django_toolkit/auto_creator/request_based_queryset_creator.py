@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ..functions.files import create_file
+from ..functions.files import create_file, get_app_path
 
 
 class RequestBasedQuerysetCreatorMixin:
@@ -24,7 +24,8 @@ class RequestBasedQuerysetCreatorMixin:
         return files
 
     def _auto_create_app_request_based_queryset(self, app_label: str):
-        app_file_path = f"{app_label}/request_based_queryset.py"
+        app_base_path = get_app_path(app_label)
+        app_file_path = app_base_path / "request_based_queryset.py"
         app_class_name = self._get_app_queryset_class_name(app_label)
 
         create_file(

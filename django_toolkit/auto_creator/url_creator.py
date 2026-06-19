@@ -2,7 +2,8 @@
 URL Creator Mixin for ModelAutoCreator
 """
 
-from ..functions.files import insert_lines_in_file, insert_line_in_file, create_file
+from pathlib import Path
+from ..functions.files import insert_lines_in_file, insert_line_in_file, create_file, get_app_path
 from ..functions.models import get_model_operation_name, get_model_base_url
 from ..functions.permissions import READ_ONLY_OPERATIONS, ALL_OPERATIONS
 from .functions import get_comment_header, get_view_class_name
@@ -73,7 +74,8 @@ class URLCreatorMixin:
     def _auto_create_app_urls(self, app_label: str) -> set:
         """Auto-sync URLs for a specific app. Returns True if URLs were modified."""
         files = set()
-        app_urls_path = f"{app_label}/urls.py"
+        app_base_path = get_app_path(app_label)
+        app_urls_path = app_base_path / "urls.py"
 
         # Create urls.py if it doesn't exist
         file = create_file(

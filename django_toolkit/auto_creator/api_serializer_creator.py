@@ -4,7 +4,7 @@ API Serializer Creator Mixin for ModelAutoCreator
 
 from pathlib import Path
 
-from django_toolkit.functions.files import create_file
+from django_toolkit.functions.files import create_file, get_app_path
 from django_toolkit.functions.models import get_model_base_url
 
 
@@ -16,7 +16,8 @@ class APISerializerCreatorMixin:
 	def _auto_create_app_api_serializers(self, app_label: str) -> set:
 		"""Auto-create API serializers for a specific app. Returns modified files."""
 		files = set()
-		serializers_dir = Path(f"{app_label}/api/serializers")
+		app_base_path = get_app_path(app_label)
+		serializers_dir = app_base_path / "api" / "serializers"
 
 		init_file = create_file(
 			file_path=serializers_dir / "__init__.py",

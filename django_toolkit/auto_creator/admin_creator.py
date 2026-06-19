@@ -5,7 +5,7 @@ Admin Creator Mixin for ModelAutoCreator
 from typing import Dict
 from pathlib import Path
 
-from ..functions.files import create_file, insert_line_in_file
+from ..functions.files import create_file, insert_line_in_file, get_app_path
 
 
 class AdminCreatorMixin:
@@ -16,7 +16,8 @@ class AdminCreatorMixin:
     def _auto_create_admin(self, app_label: str) -> set:
         """Auto-create admin.py for a specific app. Returns a set of modified files."""
         files = set()
-        admin_path = f"{app_label}/admin.py"
+        app_base_path = get_app_path(app_label)
+        admin_path = app_base_path / "admin.py"
 
         file = create_file(
             file_path=admin_path,
@@ -56,7 +57,7 @@ class AdminCreatorMixin:
 
 
     @staticmethod
-    def _insert_admin_register_line(admin_path: str, register_line: str):
+    def _insert_admin_register_line(admin_path, register_line: str):
         anchors = [
             "# Register your models here.",
             "from .models import *",
@@ -76,7 +77,7 @@ class AdminCreatorMixin:
 
 
     @staticmethod
-    def _is_model_already_registered(admin_path: str, model_name: str) -> bool:
+    def _is_model_already_registered(admin_path, model_name: str) -> bool:
         path = Path(admin_path)
         if not path.exists():
             return False

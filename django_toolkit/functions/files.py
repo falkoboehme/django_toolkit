@@ -10,6 +10,20 @@ def get_project_name():
     return ""
 
 
+def get_app_path(app_label: str) -> Path:
+    """
+    Get the absolute path to a Django app directory.
+    Uses Django's app registry for reliable path resolution.
+    """
+    from django.apps import apps
+    try:
+        app_config = apps.get_app_config(app_label)
+        return Path(app_config.module.__file__).parent
+    except LookupError:
+        # Fallback for apps not in registry
+        return Path(app_label)
+
+
 def is_in_file(filename, string):
     """check if string is in file, returns True or False"""
     with open(filename, "r") as file:
@@ -39,6 +53,7 @@ def insert_line_in_file(
 
     If `check_string` exists in the file, insertion is skipped.
     If `check_string` is not provided, `line_to_insert` is used for the existence check.
+    If anchor is empty, appends to end of file.
 
     Returns:
         The path of the modified file if a line was inserted, or False if no changes were made.
@@ -54,6 +69,14 @@ def insert_line_in_file(
     string_to_check = check_string if check_string is not None else line_to_insert
     if string_to_check != "" and string_to_check in content:
         return False
+
+    # Handle empty anchor - append to end of file
+    if anchor == "":
+        if content and not content.endswith("\n"):
+            content += "\n"
+        content += line_to_insert + "\n"
+        file_path.write_text(content, encoding="utf-8")
+        return file_path.as_posix()
 
     # Check if anchor exists
     if anchor not in content:

@@ -4,7 +4,7 @@ View Creator Mixin for ModelAutoCreator
 
 from typing import Dict
 from pathlib import Path
-from django_toolkit.functions.files import insert_line_in_file, create_file
+from django_toolkit.functions.files import insert_line_in_file, create_file, get_app_path
 from django_toolkit.functions.permissions import READ_ONLY_OPERATIONS, ALL_OPERATIONS
 from .functions import get_view_class_name, get_base_view_class, get_table_class_name
 
@@ -17,7 +17,8 @@ class ViewCreatorMixin:
     def _auto_create_app_views(self, app_label: str) -> set:
         """Auto-create views for a specific app. Returns a set of files if views were modified."""
         files = set()
-        app_views_dir = Path(f"{app_label}/views/")
+        app_base_path = get_app_path(app_label)
+        app_views_dir = app_base_path / "views"
 
         # Create __init__.py if it doesn't exist
         init_file_path = app_views_dir / "__init__.py"
@@ -30,6 +31,7 @@ class ViewCreatorMixin:
         # Add Model views
         for model_name, model_info in self._registry[app_label].items():
             if model_info.get("create_views"):
+                view_class_name = get_view_class_name(model_name, "list")
                 file = create_file(
                     file_path=app_views_dir / f"{model_name.lower()}_views.py",
                     content=self._get_model_view_file_content(model_info),

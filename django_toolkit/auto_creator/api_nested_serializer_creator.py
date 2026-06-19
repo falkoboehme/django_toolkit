@@ -4,7 +4,7 @@ API Nested Serializer Creator Mixin for ModelAutoCreator
 
 from pathlib import Path
 
-from django_toolkit.functions.files import create_file
+from django_toolkit.functions.files import create_file, get_app_path
 from django_toolkit.functions.models import get_model_base_url
 
 
@@ -16,7 +16,8 @@ class APINestedSerializerCreatorMixin:
 	def _auto_create_app_api_nested_serializers(self, app_label: str) -> set:
 		"""Auto-create API nested serializers for a specific app. Returns modified files."""
 		files = set()
-		nested_serializers_dir = Path(f"{app_label}/api/nested_serializers")
+		app_base_path = get_app_path(app_label)
+		nested_serializers_dir = app_base_path / "api" / "nested_serializers"
 
 		init_file = create_file(
 			file_path=nested_serializers_dir / "__init__.py",

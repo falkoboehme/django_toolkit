@@ -3,7 +3,7 @@ API View Creator Mixin for ModelAutoCreator
 """
 
 from pathlib import Path
-from django_toolkit.functions.files import insert_lines_in_file, create_file, is_in_file
+from django_toolkit.functions.files import insert_lines_in_file, create_file, is_in_file, get_app_path
 
 
 class APIViewCreatorMixin:
@@ -14,7 +14,8 @@ class APIViewCreatorMixin:
     def _auto_create_app_api_view(self, app_label: str) -> set:
         """Auto-create API views for a specific app. Returns a set of files if views were modified."""
         files = set()
-        app_api_view_file = Path(f"{app_label}/api/views.py")
+        app_base_path = get_app_path(app_label)
+        app_api_view_file = app_base_path / "api" / "views.py"
 
         lines = "from django.conf import settings\n"
         lines += "from rest_framework.routers import APIRootView\n"
@@ -51,7 +52,8 @@ class APIViewCreatorMixin:
     def _auto_create_app_model_api_view(self, app_label: str, model_info: dict) -> set:
         """Auto-create views for a specific model. Returns a set of files if views were modified."""
         files = set()
-        app_model_view_file = Path(f"{app_label}/api/views.py")
+        app_base_path = get_app_path(app_label)
+        app_model_view_file = app_base_path / "api" / "views.py"
 
         viewset_class_identifier = f"class {model_info['model_name']}ViewSet("
         if app_model_view_file.exists() and is_in_file(app_model_view_file, viewset_class_identifier):

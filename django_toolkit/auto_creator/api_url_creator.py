@@ -2,7 +2,8 @@
 API URL Creator Mixin for ModelAutoCreator
 """
 
-from ..functions.files import insert_lines_in_file, insert_line_in_file, create_file
+from pathlib import Path
+from ..functions.files import insert_lines_in_file, insert_line_in_file, create_file, get_app_path
 from ..functions.models import get_model_base_url
 from .functions import get_comment_header
 
@@ -91,11 +92,13 @@ class APIURLCreatorMixin:
     def _auto_create_app_api_urls(self, app_label: str) -> set:
         """Auto-sync URLs for a specific app. Returns True if URLs were modified."""
         files = set()
-        app_api_urls_path = f"{app_label}/api/urls.py"
+        app_base_path = get_app_path(app_label)
+        app_api_dir = app_base_path / "api"
+        app_api_urls_path = app_api_dir / "urls.py"
 
         # Ensure api package exists
         file = create_file(
-            file_path=f"{app_label}/api/__init__.py",
+            file_path=app_api_dir / "__init__.py",
             content="",
         )
         files.add(file) if file else None

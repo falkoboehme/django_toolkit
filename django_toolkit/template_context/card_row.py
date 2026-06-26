@@ -11,9 +11,16 @@ from django.urls.exceptions import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from datetime import datetime, date, time
-from ..functions.format import django_format_to_python
+from ..functions.format import django_format_to_python, render_color_field
 from ..functions.models import generate_link_to_obj, get_model_base_url, get_user_by_email
 from ..template_context.icon import icon_false, icon_true
+
+# Try to import colorfield for ColorField rendering
+try:
+    from colorfield.fields import ColorField as DjangoColorField
+except ImportError:
+    DjangoColorField = None
+
 
 
 
@@ -143,6 +150,10 @@ class CardRow:
             if related_obj is not None:
                 return mark_safe(generate_link_to_obj(related_obj, user))
 
+        # Handle ColorField values by rendering as colored badges
+        if DjangoColorField and self._field and isinstance(self._field, DjangoColorField) and raw_value:
+            return render_color_field(str(raw_value))
+
         # Render JSONField values as pretty-printed JSON.
         # In form context return plain text for textarea; in display context return <pre>.
         if self.is_json_field and raw_value is not None:
@@ -259,6 +270,7 @@ class CardRow:
             'DateInput': 'input_date',
             'DateTimeInput': 'input_datetime',
             'TimeInput': 'input_time',
+            'ColorWidget': 'colorfield',
         }
         
         return widget_map.get(widget_name, 'input_text')

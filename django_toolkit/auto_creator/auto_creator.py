@@ -71,7 +71,7 @@ class DTModelAutoCreator(
 
         # Auto-create project request_based_queryset.py (if needed)
         all_files.update(self._auto_create_request_based_queryset())
-
+        
         if settings.DT_AUTO_CREATE_MENU:
             # Auto-create Menu (if needed)
             all_files.update(self._auto_create_menu())

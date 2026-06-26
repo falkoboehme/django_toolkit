@@ -1,14 +1,15 @@
 {% load static %}
 {% if row.render_formular and not card.read_only %} 
 {# Create a form for changing/adding #}
-    <input type="text" id="{{ row.id }}" class="colorfield_field jscolor {% if class %}{{ class }}{% else %}form-control{% endif %}"
+    <link rel="stylesheet" href="{% static 'colorfield/coloris/coloris.min.css' %}">
+    <input type="text" id="{{ row.id }}" class="colorfield_field {% if class %}{{ class }}{% else %}form-control{% endif %}"
         name="{{ row.name }}"
         value="{% firstof row.value default '' %}"
         placeholder="{% firstof value default '' %}"
-        data-jscolor="{hash:true,width:225,height:150,format:'{{ format }}',required:{% if required %}true{% else %}false{% endif %},paletteCols:4,paletteHeight:28{% if palette %},palette:{{ palette|safe }}{% endif %}}"
+        data-coloris
         {% if row.disabled %}disabled{% endif %}
         {% if row.required %}required{% endif %} />
-    <script src="{% static 'colorfield/jscolor/jscolor.min.js' %}"></script>
+    <script src="{% static 'colorfield/coloris/coloris.min.js' %}"></script>
     <script src="{% static 'colorfield/colorfield.js' %}"></script>
 {% else %}
     {# Just display the value #}

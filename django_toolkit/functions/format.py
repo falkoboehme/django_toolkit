@@ -50,11 +50,41 @@ def render_color_field(color_value: str, text: str = "") -> str:
     
     if text:
         # Badge with text inside
+        color_brightness = get_color_brightness(color_value)
+        # Choose text color based on brightness for better contrast
+        if color_brightness > 170:
+            text_color = "#333333"
+        else:
+            text_color = "#ffffff"
+
         return mark_safe(
-            f'<span style="display:inline-block; background-color:{color_value}; padding:0.1rem 0.45rem; border-radius:4px; color:#fff; font-weight:500; text-shadow:0 1px 2px rgba(0,0,0,0.2); margin:0.1rem 0.2rem; font-size:0.85rem;">{text}</span>'
+            f'<span style="display:inline-block; background-color:{color_value}; padding:0.1rem 0.45rem; border-radius:4px; color:{text_color}; font-weight: 500; text-shadow:0 1px 2px rgba(0,0,0,0.2); margin:0.1rem 0.2rem; font-size:0.85rem;">{text}</span>'
         )
     else:
         # Small color square without text
         return mark_safe(
             f'<span style="display:inline-block; background-color:{color_value}; width:20px; height:20px; border-radius:4px; border:1px solid #ddd; vertical-align:middle; margin-right:0.5rem;" title="{color_value}"></span>{color_value}'
         )
+
+
+def get_color_brightness(hex_color: str) -> int:
+    """Calculate the perceived brightness of a hex color and return either black or white for optimal contrast.
+
+    Args:
+        hex_color (str): _description_
+
+    Returns:
+        float: Brightness value (0-255). Lower values are darker, higher values are lighter.
+    """
+    # remove the '#' if present
+    hex_color = hex_color.lstrip("#")
+
+    # extract RGB components from the hex color
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+
+    # calculate brightness using the formula for perceived brightness
+    brightness = 0.299 * r + 0.587 * g + 0.114 * b
+
+    return round(brightness)

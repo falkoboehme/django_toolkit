@@ -48,7 +48,7 @@ class DTContextMixin:
     def menu_context(self, request, instance=None):
         project_name = get_project_module_name()
         menu_file = "menu"
-        log.debug(f"Trying to import {project_name}.{menu_file}")
+        # log.debug(f"Trying to import {project_name}.{menu_file}")
         try:
             module = importlib.import_module(f"{project_name}.{menu_file}")
             get_side_menu_items = getattr(module, "get_side_menu_items")

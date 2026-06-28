@@ -234,7 +234,7 @@ class InitDB:
         try:
             return model.objects.get(**get_filter)
         except model.DoesNotExist:
-            pass
+            print(f"execute_query: {model} with filter {get_filter} does not exist.")
         except Exception as error:
             print(f"execute_query: {error}")
             

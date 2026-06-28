@@ -490,12 +490,14 @@ table th a:hover {
 }
 
 .dt-page-meta,
-.dt-page-header {
+.dt-page-header,
+.dt-page-subtitle {
     position: relative;
 }
 
 .dt-page-meta::before,
-.dt-page-header::before {
+.dt-page-header::before,
+.dt-page-subtitle::before {
     content: '';
     position: absolute;
     top: 0;

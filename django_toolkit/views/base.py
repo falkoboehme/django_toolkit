@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
 from django import forms
+from django.forms.models import BaseModelForm
 from django.conf import settings
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, ContextMixin
@@ -101,3 +102,25 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
 
     def get_queryset(self):
         return self.model._default_manager.for_request(self.request)    # type: ignore
+
+
+    def apply_request_based_field_querysets(self, form: BaseModelForm) -> BaseModelForm:
+        """Restrict FK/M2M form field querysets using request-based managers when available."""
+        for form_field in form.fields.values():
+            field_queryset = getattr(form_field, 'queryset', None)
+            if field_queryset is None:
+                continue
+
+            related_model = getattr(field_queryset, 'model', None)
+            if related_model is None:
+                continue
+
+            manager = getattr(related_model, '_default_manager', None)
+            if manager is None:
+                continue
+
+            for_request = getattr(manager, 'for_request', None)
+            if callable(for_request):
+                form_field.queryset = for_request(self.request)
+
+        return form

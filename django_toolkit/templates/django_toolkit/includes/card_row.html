@@ -36,6 +36,8 @@
                 {% include 'django_toolkit/input_forms/select_search.html' %}
             {% elif row.form == 'colorfield' %}
                 {% include 'django_toolkit/input_forms/colorfield.html' %}
+            {% elif row.form == 'input_file' %}
+                {% include 'django_toolkit/input_forms/input_file.html' %}
             {% else %}
                 Eingabefeld '{{ row.form }}'
             {% endif %}

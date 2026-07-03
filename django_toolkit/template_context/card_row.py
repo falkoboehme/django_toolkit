@@ -271,6 +271,8 @@ class CardRow:
             'DateTimeInput': 'input_datetime',
             'TimeInput': 'input_time',
             'ColorWidget': 'colorfield',
+            'FileInput': 'input_file',
+            'ClearableFileInput': 'input_file',
         }
         
         return widget_map.get(widget_name, 'input_text')

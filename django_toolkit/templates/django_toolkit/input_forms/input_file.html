@@ -1,0 +1,26 @@
+{% if row.render_formular and not card.read_only %}
+    {% if row.bound_field.value %}
+        <div class="mb-2">
+            {% if row.bound_field.value.url %}
+                <a href="{{ row.bound_field.value.url }}" target="_blank">{{ row.bound_field.value.name|default:row.value }}</a>
+            {% else %}
+                {{ row.value }}
+            {% endif %}
+        </div>
+    {% endif %}
+    <input type="file" name="{{ row.name }}" class="form-control" id="{{ row.id }}"
+        {% if row.required %}required{% endif %}
+    >
+{% else %}
+    <output id="{{ row.id }}">
+        {% if row.value %}
+            {% if row.value.url %}
+                <a href="{{ row.value.url }}" target="_blank">{{ row.value.name|default:row.value }}</a>
+            {% else %}
+                {{ row.value }}
+            {% endif %}
+        {% else %}
+            {{ global_none }}
+        {% endif %}
+    </output>
+{% endif %}

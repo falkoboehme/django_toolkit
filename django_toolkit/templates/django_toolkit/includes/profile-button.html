@@ -19,9 +19,9 @@
           <a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin Area" %}</a>
         {% endif %}
       </li>
-      {% comment %} <li>
-        <a class="dropdown-item" href="{% url 'user:profile' %}">Profile</a>
-      </li> {% endcomment %}
+      <li>
+        <a class="dropdown-item" href="{% url 'user:profile' %}">{% trans "edit Profile" %}</a>
+      </li>
     <!--
       <li>
         <a class="dropdown-item" href="#">Preferences</a>

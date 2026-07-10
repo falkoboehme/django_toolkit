@@ -12,26 +12,31 @@ class CardFieldDefinition:
     Supported options (stored in ``options`` and forwarded via ``row_kwargs``):
 
     - ``external`` (bool | str)
-      Marks a field as external/read-only integration field.
-      Behavior:
-      - Detail view: field is rendered as usual.
-      - Create/Update views: field is skipped and not added to the form.
+        Marks a field as external/read-only integration field.
+        Behavior:
+        - Detail view: field is rendered as usual.
+        - Create/Update views: field is skipped and not added to the form.
 
     - ``many_to_many_widget`` (str | bool)
-      Controls many-to-many widget mode in forms.
-      Accepted values include ``admin``, ``admin-like``, ``filter_horizontal``,
-      ``dual``, ``dual-list`` (and boolean ``True`` as alias for ``admin``).
+        Controls many-to-many widget rendering mode for forms. Supported values
+        include ``admin`` (dual-list like Django admin), ``dual``,
+        ``dual-list``, ``filter_horizontal`` or boolean ``True`` (alias for
+        ``admin``). Legacy aliases ``m2m_widget`` and ``many_to_many_admin`` are
+        removed and will not be recognized.
 
-    - ``m2m_widget`` (str | bool)
-      Alias for ``many_to_many_widget``.
-
-    - ``many_to_many_admin`` (str | bool)
-      Legacy alias for ``many_to_many_widget``.
+    - ``rows`` (int)
+        Controls the number of visible rows for both multi-line textareas and
+        many-to-many select widgets. This is the single, unambiguous key to use
+        in field configurations. Legacy keys such as ``textarea_rows``,
+        ``many_to_many_rows`` and ``size`` are deprecated and no longer
+        accepted; using them will raise a ``ValueError`` to force an explicit
+        migration to ``rows``.
 
     Notes:
-    - ``rows``/``textarea_rows`` and ``many_to_many_rows``/``size`` are normalized
-      into dedicated attributes and then exposed as
-      ``textarea_rows_override`` / ``select_size_override``.
+        - The single input key ``rows`` is normalized into internal attributes and
+            exposed as ``textarea_rows_override`` (for textareas) and
+            ``select_size_override`` (for many-to-many selects). Legacy input keys
+            are rejected to keep configuration unambiguous.
     - Unknown options are currently passed through to ``CardRow`` unchanged.
     """
 
@@ -81,8 +86,7 @@ def normalize_card_field(field_entry: Any) -> CardFieldDefinition:
     Supported input formats:
     - str: field name
     - dict: at least ``name`` plus optional keys like
-      ``rows``/``textarea_rows``, ``many_to_many_rows``/``size`` and any
-      supported ``options`` keys (e.g. ``external``, ``many_to_many_widget``)
+      ``rows`` and any supported ``options`` keys (e.g. ``external``, ``many_to_many_widget``)
     - CardFieldDefinition instance
     - object with ``name`` attribute and optional configuration attributes
     """
@@ -100,13 +104,17 @@ def normalize_card_field(field_entry: Any) -> CardFieldDefinition:
 
     if isinstance(field_entry, dict):
         name = get_valid_name(field_entry.get("name"))
-        textarea_rows = field_entry.get("rows", field_entry.get("textarea_rows"))
-        many_to_many_rows = field_entry.get("many_to_many_rows", field_entry.get("size"))
-        options = {
-            key: value
-            for key, value in field_entry.items()
-            if key not in {"name", "rows", "textarea_rows", "many_to_many_rows", "size"}
-        }
+        # Only accept the explicit 'rows' key. Reject legacy synonyms to
+        # ensure configurations are unambiguous.
+        forbidden = {"textarea_rows", "many_to_many_rows", "size"}
+        for k in forbidden.intersection(field_entry.keys()):
+            raise ValueError(
+                f"Use only 'rows' in card field definitions (found '{k}' in field '{name}')."
+            )
+        rows = field_entry.get("rows", None)
+        textarea_rows = rows
+        many_to_many_rows = rows
+        options = {key: value for key, value in field_entry.items() if key not in {"name", "rows"}}
         return CardFieldDefinition(
             name=name,
             textarea_rows=textarea_rows,
@@ -116,12 +124,14 @@ def normalize_card_field(field_entry: Any) -> CardFieldDefinition:
 
     if hasattr(field_entry, "name"):
         name = get_valid_name(getattr(field_entry, "name", None))
-        textarea_rows = getattr(field_entry, "rows", getattr(field_entry, "textarea_rows", None))
-        many_to_many_rows = getattr(
-            field_entry,
-            "many_to_many_rows",
-            getattr(field_entry, "size", None),
-        )
+        # If object-like field_entry exposes legacy attributes, reject them.
+        if any(hasattr(field_entry, k) for k in ("textarea_rows", "many_to_many_rows", "size")):
+            raise ValueError(
+                f"Use only 'rows' attribute on field-like definitions for '{getattr(field_entry, 'name', None)}'."
+            )
+        rows = getattr(field_entry, "rows", None)
+        textarea_rows = rows
+        many_to_many_rows = rows
         options = getattr(field_entry, "options", {})
         if not isinstance(options, dict):
             options = {}
@@ -190,10 +200,10 @@ class CardDefinition:
                 fields.append(field_definition.name)
             else:
                 field_data: dict[str, Any] = {"name": field_definition.name}
-                if field_definition.textarea_rows is not None:
-                    field_data["rows"] = field_definition.textarea_rows
-                if field_definition.many_to_many_rows is not None:
-                    field_data["many_to_many_rows"] = field_definition.many_to_many_rows
+                # Emit the single canonical key 'rows' if a size is configured.
+                rows_val = field_definition.textarea_rows or field_definition.many_to_many_rows
+                if rows_val is not None:
+                    field_data["rows"] = rows_val
                 field_data.update(field_definition.options)
                 fields.append(field_data)
 

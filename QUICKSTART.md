@@ -149,27 +149,18 @@ CardDefinition(
 CardDefinition(
     header='Zuordnungen',
     fields=[
-        {'name': 'groups', 'size': 8},
+        {'name': 'groups', 'rows': 8},
         # alternativ explizit:
-        {'name': 'permissions', 'many_to_many_rows': 12},
+        {'name': 'permissions', 'rows': 12},
     ],
 )
 ```
 
-- Admin-ähnliche ManyToMany-Zuweisung (Dual-List wie im Django-Admin) pro Feld:
 
-```python
-CardDefinition(
-    header='Rechte',
-    fields=[
-        {'name': 'user_permissions', 'many_to_many_widget': 'admin'},
-    ],
-)
-```
-
-- Unterstützte Werte für `many_to_many_widget`: `admin` (empfohlen), `dual`, `dual-list`, `filter_horizontal` oder boolesches `True`.
-
-- Priorität bei ManyToMany-/Multi-Select: Feldkonfiguration (`size` / `many_to_many_rows`) → `widget.attrs['size']` → `DT_FORM_SELECT_MULTIPLE_SIZE`.
+Hinweis: Die früheren Widget-Aliase wie `many_to_many_widget` sind nicht mehr
+verfügbar. Verwende `rows` zur Steuerung der sichtbaren Größe von ManyToMany-
+Selects. Priorität: Feldkonfiguration (`rows`) → `widget.attrs['rows']` →
+`DT_FORM_SELECT_MULTIPLE_SIZE`.
 - Ajax-Select-Suche wird verwendet, wenn `Anzahl Optionen >= DT_FORM_SELECT_SEARCH_LIMIT` und ein passender API-List-Endpunkt für das Feld verfügbar ist.
 
 ### 2.3 INSTALLED_APPS

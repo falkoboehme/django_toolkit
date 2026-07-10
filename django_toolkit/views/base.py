@@ -28,7 +28,7 @@ class DTView(LoginRequiredMixin, TemplateResponseMixin, ContextMixin, DTContextM
 
 class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponseMixin, ContextMixin, DTContextMixin):
     model = DTBaseModel    # must be set in each ModelView
-   
+    
     def get_card_context(self, request, instance=None, form=None, include_read_only_cards=True) -> dict:
         context = {}
         if hasattr(self.model._meta, "cards"):
@@ -121,6 +121,6 @@ class DTViewMixins(PermissionRequiredMixin, LoginRequiredMixin, TemplateResponse
 
             for_request = getattr(manager, 'for_request', None)
             if callable(for_request):
-                form_field.queryset = for_request(self.request)
+                form_field.queryset = for_request(self.request)     # type: ignore
 
         return form

@@ -88,6 +88,8 @@ class DTListView(DTViewMixins, ListView):
     def _get_filter_input_type(self, field):
         if isinstance(field, models.BooleanField):
             return "boolean"
+        if isinstance(field, models.ForeignKey):
+            return "select"
         if isinstance(field, (models.DateTimeField,)):
             return "datetime-local"
         if isinstance(field, (models.DateField,)):
@@ -97,6 +99,23 @@ class DTListView(DTViewMixins, ListView):
         if isinstance(field, (models.IntegerField, models.FloatField, models.DecimalField)):
             return "number"
         return "text"
+
+    def _get_foreign_key_choices(self, field):
+        if not isinstance(field, models.ForeignKey):
+            return []
+
+        related_manager = field.related_model._default_manager.all()
+        ordering = getattr(field.related_model._meta, "ordering", None)
+        if ordering:
+            related_manager = related_manager.order_by(*ordering)
+
+        return [
+            {
+                "value": str(obj.pk),
+                "label": str(obj),
+            }
+            for obj in related_manager
+        ]
 
     def _normalize_filter_value(self, field, raw_value):
         if raw_value is None:
@@ -122,7 +141,7 @@ class DTListView(DTViewMixins, ListView):
 
         if isinstance(field, models.ForeignKey):
             try:
-                return int(value)
+                return field.target_field.to_python(value)
             except (TypeError, ValueError):
                 return None
 
@@ -177,7 +196,7 @@ class DTListView(DTViewMixins, ListView):
                 continue
 
             try:
-                relation_id = int(raw_value)
+                relation_id = int(raw_value)    # type: ignore
             except (TypeError, ValueError):
                 continue
 
@@ -196,12 +215,15 @@ class DTListView(DTViewMixins, ListView):
     def _get_filter_fields_context(self):
         fields_context = []
         for field in self.get_filter_fields():
+            current_value = self.request.GET.get(f"{self.filter_param_prefix}{field.name}", "")
             fields_context.append({
                 "name": field.name,
                 "label": field.verbose_name,
                 "input_type": self._get_filter_input_type(field),
                 "is_boolean": isinstance(field, models.BooleanField),
-                "current_value": self.request.GET.get(f"{self.filter_param_prefix}{field.name}", ""),
+                "is_foreign_key": isinstance(field, models.ForeignKey),
+                "choices": self._get_foreign_key_choices(field) if isinstance(field, models.ForeignKey) else [],
+                "current_value": current_value,
             })
         return fields_context
 

@@ -31,6 +31,17 @@
                                                             <option value="true" {% if filter.current_value == 'true' %}selected{% endif %}>{% trans 'Yes' %}</option>
                                                             <option value="false" {% if filter.current_value == 'false' %}selected{% endif %}>{% trans 'No' %}</option>
                                                         </select>
+                                                    {% elif filter.is_foreign_key %}
+                                                        <select
+                                                            id="id_{{ filter_param_prefix }}{{ filter.name }}"
+                                                            name="{{ filter_param_prefix }}{{ filter.name }}"
+                                                            class="form-select"
+                                                        >
+                                                            <option value="">{% trans 'Any' %}</option>
+                                                            {% for choice in filter.choices %}
+                                                                <option value="{{ choice.value }}" {% if filter.current_value == choice.value %}selected{% endif %}>{{ choice.label }}</option>
+                                                            {% endfor %}
+                                                        </select>
                                                     {% else %}
                                                         <input
                                                             id="id_{{ filter_param_prefix }}{{ filter.name }}"

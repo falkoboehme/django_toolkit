@@ -56,43 +56,43 @@ def control_button_delete(obj):
         attr=mark_safe('data-bs-toggle="modal" data-bs-target="#deleteAskModal"'),
     )
 
-def form_button_cancel(url):
+def form_button_cancel(href):
     return Button(
         name=_("Cancel"),
-        href=url,
+        href=href,
         color='red-outline',
     )
 
-def form_button_reset():
+def form_button_reset(href='#'):
     return Button(
         name=_("Reset"),
-        href='#',
+        href=href,
         color='blue-outline',
         attr=mark_safe('type="reset"'),
     )
 
-def form_button_create():
+def form_button_create(href='#'):
     return Button(
         name=_("Create"),
-        href='#',
+        href=href,
         color='green',
         attr=mark_safe('type="submit"'),
     )
 
 
-def form_button_update():
+def form_button_update(href='#'):
     return Button(
         name=_("Update"),
-        href='#',
+        href=href,
         color='yellow',
         attr=mark_safe('type="submit"'),
     )
 
 
-def form_button_save():
+def form_button_save(href='#'):
     return Button(
         name=_("Save"),
-        href='#',
+        href=href,
         color='blue',
         attr=mark_safe('type="submit"'),
     )

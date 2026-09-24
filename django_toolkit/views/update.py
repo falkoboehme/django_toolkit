@@ -43,9 +43,9 @@ class DTUpdateView(DTViewMixins, UpdateView):
     def get_form_buttons(self, obj) -> list[Button]:
         detail_url = f"{get_app_model_url(self.model)}{obj.id}/"
         return [
-            form_button_cancel(detail_url),
+            form_button_cancel(href=detail_url),
             form_button_reset(),
-            form_button_update()
+            form_button_update(href=detail_url),
         ]
     
 

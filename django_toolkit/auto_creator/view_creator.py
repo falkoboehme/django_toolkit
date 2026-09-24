@@ -73,13 +73,16 @@ class ViewCreatorMixin:
             lines += f"    model = {model_class.__name__}\n"
             if view_type == "list":
                 lines += f"    table_class = {model_class.__name__}Table\n"
-            if view_type in ["create", "update", "delete"]:
+            if view_type in ["delete"]:
                 lines += (
                     f"    success_url = get_app_model_url({model_class.__name__})\n"
                 )
             if view_type in ["create", "update"]:
                 lines += (
                     f"    fields = get_fields_of_model({model_class.__name__}, 'rw')\n"
+                    f"    \n"
+                    f"    def get_success_url(self):\n"
+                    f"        return self.object.get_absolute_url()   # type: ignore\n"
                 )
 
         return lines
